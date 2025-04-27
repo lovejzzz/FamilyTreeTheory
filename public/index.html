@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Tree Theory</title>
+  
+  <!-- Space theme fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=JetBrains+Mono&family=Orbitron:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Space Grotesk', 'Exo 2', sans-serif;
+      background: #0a0e17 url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #e0e6ff;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    
+    /* Fixed-width grid layout */
+    .container {
+      width: 1200px;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
+      text-align: center;
+      margin-bottom: 30px;
+      background: linear-gradient(to right, #4f71be, #8a2be2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 10px rgba(99, 155, 255, 0.5);
+      letter-spacing: 1px;
+    }
+    
+    /* Two-column grid layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 500px 1fr;
+      grid-gap: 30px;
+      height: calc(100vh - 150px);
+    }
+    
+    /* Left column */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+    
+    /* Right column - 3D graph */
+    .right-column {
+      background-color: rgba(16, 23, 41, 0.8);
+      border: 1px solid rgba(99, 155, 255, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      min-height: 600px;
+    }
+    
+    /* Module styling */
+    .module {
+      background: rgba(16, 23, 41, 0.8);
+      border-radius: 12px;
+      border: 1px solid rgba(99, 155, 255, 0.3);
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+    }
+    
+    /* Discovery log */
+    .discovery-log {
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 0 20px rgba(99, 155, 255, 0.1);
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .log-entries {
+      font-size: 14px;
+    }
+    
+    .log-entry {
+      padding: 8px 0;
+      border-bottom: 1px dotted rgba(99, 155, 255, 0.2);
+      line-height: 1.5;
+    }
+    
+    .log-gen {
+      font-weight: bold;
+      color: #88c0ff;
+      display: inline-block;
+      width: 90px;
+      white-space: nowrap;
+    }
+    
+    .log-chord {
+      font-weight: bold;
+      color: #ffcc00;
+    }
+    
+    .log-desc {
+      color: #aaa;
+      font-style: italic;
+    }
+    
+    /* Generation container */
+    .generation-container {
+      background: rgba(30, 40, 70, 0.6);
+      border: 1px solid rgba(99, 155, 255, 0.3);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    
+    /* Chord options container */
+    .options-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      width: 100%;
+    }
+    
+    .generation-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    /* Chord card styling */
+    .chord-option {
+      background: linear-gradient(135deg, rgba(30, 50, 100, 0.8), rgba(20, 30, 60, 0.8));
+      border: 1px solid rgba(99, 155, 255, 0.4);
+      border-radius: 8px;
+      padding: 12px;
+      height: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .chord-option:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(99, 155, 255, 0.5);
+      border-color: rgba(99, 155, 255, 0.8);
+    }
+    
+    .chord-option.selected {
+      background: linear-gradient(135deg, rgba(80, 120, 200, 0.8), rgba(50, 80, 150, 0.8));
+      border-color: rgba(150, 200, 255, 0.8);
+      box-shadow: 0 0 20px rgba(99, 155, 255, 0.7);
+    }
+    
+    .chord-option.seen-before {
+      background: linear-gradient(135deg, rgba(60, 60, 70, 0.8), rgba(40, 40, 50, 0.8));
+      border-color: rgba(120, 120, 140, 0.4);
+      color: rgba(200, 200, 220, 0.7);
+    }
+    
+    .chord-option.cycle {
+      background: linear-gradient(135deg, rgba(100, 50, 50, 0.8), rgba(70, 30, 30, 0.8));
+      border-color: rgba(200, 100, 100, 0.6);
+      opacity: 0.8;
+      cursor: not-allowed;
+      position: relative;
+    }
+    
+    /* Custom tooltip for cycle cards */
+    .chord-option.cycle::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(60, 20, 20, 0.95);
+      color: #ffdddd;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+      width: max-content;
+      max-width: 250px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(200, 100, 100, 0.6);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .chord-option.cycle:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
+    }
+    
+    /* Add a small warning icon to cycle cards */
+    .chord-option.cycle::before {
+      content: '!';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,100,100,0.8) 0%, rgba(255,100,100,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(255, 100, 100, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .chord-option .notes {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #ffcc00;
+      text-align: center;
+    }
+    
+    .chord-option.seen-before .notes {
+      color: #aaaaaa;
+    }
+    
+    .chord-option .chord-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(to right, #4f71be, #8a2be2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-top: 10px;
+      text-shadow: 0 0 8px rgba(99, 155, 255, 0.3);
+      letter-spacing: 1px;
+    }
+    
+    .chord-option.seen-before .chord-name {
+      background: linear-gradient(to right, #777, #999);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    
+    /* Add a small planet icon to each card */
+    .chord-option::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,204,0,0.8) 0%, rgba(255,204,0,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    }
+    
+    .chord-option.seen-before::before {
+      background: radial-gradient(circle, rgba(170,170,170,0.8) 0%, rgba(170,170,170,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(170, 170, 170, 0.5);
+    }
+    
+    /* Custom tooltip for previously discovered chords */
+    .chord-option.seen-before {
+      position: relative;
+    }
+    
+    .chord-option.seen-before::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 30, 60, 0.95);
+      color: #e0e6ff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+      width: max-content;
+      max-width: 250px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(99, 155, 255, 0.4);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .chord-option.seen-before:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
+    }
+    
+    /* Animation for when a chord card is clicked to focus on it in the 3D graph */
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+      50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+    }
+    
+    .chord-option.focusing {
+      animation: pulse-glow 0.3s ease-in-out;
+    }
+    
+    /* Make all chord cards have a pointer cursor to indicate they're clickable */
+    .chord-option {
+      cursor: pointer;
+    }
+    
+    .gen-nav-button {
+      background: linear-gradient(135deg, #4f71be, #8a2be2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 15px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .next-button {
+      background: linear-gradient(135deg, #50c5b7, #4f71be);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin: 20px auto;
+      display: block;
+      width: 200px;
+      font-family: 'Exo 2', sans-serif;
+      font-weight: bold;
+    }
+    
+    h3, h4 {
+      font-family: 'Orbitron', sans-serif;
+      color: #e0e6ff;
+      text-shadow: 0 0 10px rgba(99, 155, 255, 0.5);
+      letter-spacing: 1px;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    
+    /* 3D Graph Container */
+    #chord3dContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Tooltip styling */
+    .chord-tooltip {
+      position: absolute;
+      display: none;
+      background-color: rgba(16, 23, 41, 0.9);
+      color: white;
+      border-radius: 8px;
+      padding: 15px;
+      min-width: 200px;
+      max-width: 300px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      border: 1px solid rgba(99, 155, 255, 0.3);
+    }
+    
+    /* Add a tooltip arrow pointing to the planet */
+    .chord-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      margin-left: -10px;
+      border-width: 10px 10px 0;
+      border-style: solid;
+      border-color: rgba(16, 23, 41, 0.9) transparent transparent transparent;
+    }
+    
+    .tooltip-chord h4 {
+      margin: 0;
+      font-size: 1.5em;
+      color: #FFA500;
+      word-break: break-word;
+      white-space: normal;
+    }
+    
+    /* Ensure all chord names in tooltips wrap properly */
+    .tooltip-list div {
+      word-break: break-word;
+      white-space: normal;
+      margin-bottom: 5px;
+      display: block;
+    }
+    
+    /* Style for each tooltip item */
+    .tooltip-item {
+      padding: 3px 0;
+      border-bottom: 1px dotted rgba(99, 155, 255, 0.2);
+      display: block;
+    }
+    
+    .tooltip-item:last-child {
+      border-bottom: none;
+    }
+    
+    /* Game-like completion message styles */
+    .completion-message {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(25, 33, 58, 0.8), rgba(10, 14, 23, 0.9));
+      border-radius: 15px;
+      border: 2px solid #4f71be;
+      box-shadow: 0 0 30px rgba(79, 113, 190, 0.6), inset 0 0 20px rgba(138, 43, 226, 0.4);
+      animation: pulse-glow 2s infinite alternate;
+      margin: 30px auto;
+      max-width: 90%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      position: fixed;
+      z-index: 9999;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 600px;
+    }
+    
+    /* Style for the options container when showing completion */
+    .options-container.showing-completion {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+    }
+    
+    .completion-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      font-weight: bold;
+      color: #f8d210;
+      text-shadow: 0 0 10px rgba(248, 210, 16, 0.8), 0 0 20px rgba(248, 210, 16, 0.5);
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+      transform: scale(1);
+      animation: pulse-scale 1.5s infinite alternate;
+    }
+    
+    .completion-subtitle {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      color: #e0e6ff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 8px rgba(224, 230, 255, 0.6);
+    }
+    
+    /* Stars removed as requested */
+    
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 30px rgba(79, 113, 190, 0.6), inset 0 0 20px rgba(138, 43, 226, 0.4); }
+      100% { box-shadow: 0 0 50px rgba(79, 113, 190, 0.8), inset 0 0 30px rgba(138, 43, 226, 0.6); }
+    }
+    
+    @keyframes pulse-scale {
+      0% { transform: scale(1); text-shadow: 0 0 10px rgba(248, 210, 16, 0.8), 0 0 20px rgba(248, 210, 16, 0.5); }
+      100% { transform: scale(1.05); text-shadow: 0 0 15px rgba(248, 210, 16, 0.9), 0 0 30px rgba(248, 210, 16, 0.7); }
+    }
+    
+    @keyframes twinkle {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+      .container {
+        width: 100%;
+        padding: 15px;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      
+      .right-column {
+        height: 500px;
+        margin-bottom: 20px;
+      }
+      
+      .completion-title {
+        font-size: 2.5rem;
+      }
+      
+      .completion-subtitle {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Family Tree Theory</h1>
+    
+    <div class="grid">
+      <!-- Left Column -->
+      <div class="left-column">
+        <div id="gameControls" class="module">
+          <!-- Removed Chord Progression Explorer title as requested -->
+          <div id="chordDisplay">
+            <div id="discoveryLog" class="discovery-log">
+              <h4>Discovery Log:</h4>
+              <div id="logEntries" class="log-entries">
+                <div class="log-entry">
+                  <span class="log-gen">Gen 1:</span> 
+                  <span class="log-chord">G7</span> 
+                  <span class="log-desc">(The Sun)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="generationContainer" class="generation-container">
+            <div class="generation-header">
+              <button id="prevGenButton" class="gen-nav-button">&larr;</button>
+              <h4 id="generationTitle">Generation 1</h4>
+              <button id="nextGenButton" class="gen-nav-button">&rarr;</button>
+            </div>
+            <div id="optionsContainer" class="options-container"></div>
+          </div>
+          <button id="nextGenerationButton" class="next-button">Next Generation</button>
+        </div>
+        <div id="noteOptions" class="module" style="display: none;">
+          <h3>Valid 4th Note Options:</h3>
+          <div class="note-tree">
+            <div class="tree-branch" id="validOptions"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column - 3D Graph -->
+      <div class="right-column">
+        <div id="chordGraph" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+          <div id="chord3dContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="log"></div>
+  <div id="error" class="error"></div>
+  
+  <!-- Tooltip for chord information on hover -->
+  <div id="chordTooltip" class="chord-tooltip">
+    <div class="tooltip-parents">
+      <h5>Parents:</h5>
+      <div id="tooltipParents" class="tooltip-list"></div>
+    </div>
+    <div class="tooltip-chord">
+      <h4 id="tooltipChord"></h4>
+    </div>
+    <div class="tooltip-children">
+      <h5>Children:</h5>
+      <div id="tooltipChildren" class="tooltip-list"></div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+  <script type="module" src="audio.js"></script>
+  <script type="module" src="main.js"></script>
+  <script src="chord-text-fit.js"></script>
+  
+  <!-- Script to ensure 3D graph renders properly -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Force the 3D graph to render properly
+      setTimeout(function() {
+        console.log('Fixing 3D graph layout');
+        
+        // Get references to the containers
+        const chordGraph = document.getElementById('chordGraph');
+        const chord3dContainer = document.getElementById('chord3dContainer');
+        
+        if (chordGraph && chord3dContainer) {
+          // Check for canvas periodically until it's created
+          const checkForCanvas = setInterval(function() {
+            const canvas = chord3dContainer.querySelector('canvas');
+            if (canvas) {
+              console.log('Canvas found, applying styles');
+              canvas.style.width = '100%';
+              canvas.style.height = '100%';
+              canvas.style.position = 'absolute';
+              canvas.style.top = '0';
+              canvas.style.left = '0';
+              clearInterval(checkForCanvas);
+              
+              // Force a resize event
+              window.dispatchEvent(new Event('resize'));
+            }
+          }, 100);
+          
+          // Stop checking after 5 seconds to prevent infinite loop
+          setTimeout(function() {
+            clearInterval(checkForCanvas);
+          }, 5000);
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>

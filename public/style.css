@@ -1,0 +1,612 @@
+body{font-family:sans-serif;max-width:640px;margin:auto;line-height:1.5}
+select,input,button{font-size:1rem;padding:4px}
+.tetra-box{display:inline-block;width:40px;text-align:center}
+.turn-you{background:#dff}
+.turn-them{background:#fdd}
+#error {
+  color: red;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #ffeeee;
+  display: none;
+  z-index: 1000; /* Ensure it's above other elements */
+  position: relative; /* Enable z-index */
+}
+
+#error.completion {
+  display: none !important; /* Never show this popup */
+}
+
+/* Chord tooltip styles */
+.chord-tooltip {
+  position: absolute;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  padding: 15px;
+  min-width: 200px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  pointer-events: none; /* Allow mouse events to pass through */
+  transition: opacity 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-chord {
+  text-align: center;
+  padding: 8px 0;
+  margin: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-chord h4 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #FFA500; /* Orange color for chord name */
+}
+
+.tooltip-parents, .tooltip-children {
+  margin: 5px 0;
+}
+
+.tooltip-parents h5, .tooltip-children h5 {
+  margin: 0 0 5px 0;
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tooltip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tooltip-list span {
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.generation-completion {
+  background-color: #eeffee;
+  border: 2px solid #4CAF50;
+  border-radius: 5px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: center;
+  animation: pulse 2s infinite;
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.dismiss-button, .reset-button {
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1em;
+  transition: background-color 0.3s;
+}
+
+.dismiss-button {
+  background-color: #4CAF50;
+}
+
+.dismiss-button:hover {
+  background-color: #45a049;
+}
+
+.reset-container {
+  text-align: center;
+  margin: 30px 0;
+  padding: 15px;
+}
+
+.reset-button {
+  background-color: #2196F3;
+  padding: 12px 25px;
+  font-size: 1.1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.reset-button:hover {
+  background-color: #0b7dda;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 128, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 128, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 128, 0, 0); }
+}
+
+/* Note input styling */
+#inputs {
+  display: flex;
+  margin: 20px 0;
+  align-items: flex-start;
+}
+.fixed-note {
+  width: 40px;
+  height: 40px;
+  margin: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e0e0;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+.fourth-note {
+  margin-left: 20px;
+  min-width: 300px;
+}
+.options-label {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.valid-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.note-option {
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.note-option:hover {
+  transform: scale(1.1);
+}
+.note-option.selected {
+  background: #4080ff;
+  color: white;
+}
+
+/* Chord display */
+.chord-type {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 10px 0;
+  padding: 8px;
+  background: #f0f8ff;
+  border-radius: 4px;
+  border-left: 4px solid #4080ff;
+}
+
+/* Automated interface styles */
+#gameControls {
+  margin: 20px 0;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.discovery-log {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  color: #f0f0f0;
+  font-family: 'Courier New', monospace;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.log-entries {
+  font-size: 14px;
+}
+
+.log-entry {
+  padding: 5px 0;
+  border-bottom: 1px dotted #444;
+  line-height: 1.5;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-gen {
+  font-weight: bold;
+  color: #88c0ff;
+  display: inline-block;
+  width: 70px;
+}
+
+.log-chord {
+  font-weight: bold;
+  color: #ffcc00;
+}
+
+.log-desc {
+  color: #aaa;
+  font-style: italic;
+}
+
+.log-parent {
+  color: #4CAF50;
+  margin-left: 70px;
+  display: block;
+}
+
+.log-children {
+  color: #FF5722;
+  margin-left: 70px;
+  display: block;
+}
+
+.next-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin: 20px auto;
+  display: block;
+  width: 200px;
+}
+
+.next-button:hover {
+  background-color: #45a049;
+}
+
+.next-button:active {
+  transform: scale(0.98);
+}
+
+/* Generations styling */
+.generation-container {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.generation-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.generation-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.gen-nav-button {
+  background: #e0e0e0;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 15px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.gen-nav-button:hover {
+  background: #d0d0d0;
+}
+
+.gen-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px 0;
+  min-height: 100px;
+}
+
+.chord-option {
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  position: relative;
+}
+
+.chord-option:hover {
+  background: #f0f8ff;
+  border-color: #4080ff;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chord-option.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.chord-option.cycle {
+  background: #e8e8e8;
+  border-color: #d0d0d0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.chord-option.cycle::after {
+  content: '\27f2';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 12px;
+  color: #999;
+}
+
+.chord-option.seen-before {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+  color: #777;
+}
+
+.chord-option.seen-before .chord-name {
+  color: #888;
+}
+
+.chord-option.seen-before .notes {
+  color: #666;
+}
+
+/* Add a label to distinguish the two types */
+.chord-option.cycle::before {
+  content: 'Cycle';
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  font-size: 9px;
+  color: #999;
+  background: #d0d0d0;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.chord-option.seen-before:not(.cycle)::before {
+  content: 'Repeat';
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  font-size: 9px;
+  color: #777;
+  background: #e0e0e0;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.chord-option .notes {
+  font-family: monospace;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.chord-option .chord-name {
+  font-size: 12px;
+  color: #666;
+}
+
+.chord-option .generation-marker {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #1890ff;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chord-type.approximate {
+  background: #fff8e0;
+  border-left: 4px solid #ffc107;
+}
+.chord-type.unknown {
+  background: #f8f8f8;
+  border-left: 4px solid #aaaaaa;
+  font-style: italic;
+}
+
+/* Chord Graph Styling */
+#chordGraph {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f8f8f8;
+  border-radius: 5px;
+}
+.graph-container {
+  overflow: hidden;
+  background: #f8f8f8;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  height: 400px;
+}
+
+#chord3dContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.chord-node {
+  cursor: pointer;
+}
+.chord-node circle {
+  fill: #fff;
+  stroke: #4080ff;
+  stroke-width: 2px;
+  transition: all 0.3s;
+}
+.chord-node:hover circle {
+  fill: #e0f0ff;
+  stroke-width: 3px;
+}
+.chord-node text {
+  font-family: sans-serif;
+  font-size: 12px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.chord-link {
+  fill: none;
+  stroke: #999;
+  stroke-width: 2px;
+  marker-end: url(#arrowhead);
+}
+.chord-link.highlight {
+  stroke: #4080ff;
+  stroke-width: 3px;
+}
+
+/* Log styling */
+.log-entry {
+  margin: 5px 0;
+  padding: 5px;
+  border-radius: 4px;
+  background: #f8f8f8;
+}
+.log-player {
+  font-weight: bold;
+}
+.log-notes {
+  font-family: monospace;
+}
+.log-chord {
+  color: #4080ff;
+  font-style: italic;
+}
+.log-chord.approximate {
+  color: #ffc107;
+}
+
+/* Note options tree */
+#noteOptions {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 5px;
+}
+.note-option {
+  display: inline-block;
+  margin: 5px;
+  padding: 8px 12px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.note-option:hover {
+  background: #c0e0ff;
+  transform: scale(1.1);
+}
+.note-option.valid {
+  background: #c0ffc0;
+}
+.note-option.invalid {
+  background: #ffc0c0;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+.note-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tree-branch {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+/* Reset button styling */
+.reset-container {
+  text-align: center;
+  margin: 40px 0 20px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.reset-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.reset-button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.reset-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Completion message styling */
+.generation-completion {
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.generation-completion p {
+  margin: 0 0 10px 0;
+  color: #2e7d32;
+  font-weight: bold;
+}
