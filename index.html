@@ -309,8 +309,9 @@
   <div id="log"></div>
   <div id="error" class="error"></div>
   
+  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
   <script>
-    // Simple standalone version without 3D visualization
+    // Hybrid version that works both with and without a server
     document.addEventListener('DOMContentLoaded', function() {
       // DOM elements
       const nextGenerationButton = document.getElementById('nextGenerationButton');
@@ -319,13 +320,17 @@
       const generationTitle = document.getElementById('generationTitle');
       const optionsContainer = document.getElementById('optionsContainer');
       const logEntriesDiv = document.getElementById('logEntries');
+      const errorDiv = document.getElementById('error');
       
       // Game state
+      let playerId = null;
       let currentGeneration = 1;
       let selectedChord = null;
+      let generations = [];
+      let discoveredChords = new Set();
       
-      // Simplified data for GitHub Pages
-      const generations = [
+      // Simplified data for GitHub Pages or direct file opening
+      const offlineGenerations = [
         {
           id: 1,
           title: "Generation 1",
@@ -355,8 +360,138 @@
         }
       ];
       
-      // Initialize the display
-      updateGenerationDisplay();
+      // Check if we're running from a file:// URL or need to use offline mode
+      const isOfflineMode = window.location.protocol === 'file:' || 
+                          window.location.hostname !== 'localhost' && 
+                          window.location.hostname !== '127.0.0.1';
+      
+      // Initialize with offline data if needed
+      if (isOfflineMode) {
+        console.log('Running in offline mode with sample data');
+        generations = offlineGenerations;
+        initializeOfflineMode();
+      } else {
+        // Try to connect to WebSocket server if we're not in offline mode
+        try {
+          // Set up WebSocket connection
+          const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+          const ws = new WebSocket(`${protocol}://${location.host}`);
+          
+          ws.onopen = () => {
+            console.log('Connected to server');
+          };
+          
+          ws.onmessage = (event) => {
+            try {
+              const message = JSON.parse(event.data);
+              handleServerMessage(message);
+            } catch (error) {
+              console.error('Error parsing message:', error);
+              fallbackToOfflineMode();
+            }
+          };
+          
+          ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            errorDiv.textContent = 'Connection error. Falling back to offline mode.';
+            fallbackToOfflineMode();
+          };
+          
+          ws.onclose = () => {
+            console.log('Disconnected from server');
+            errorDiv.textContent = 'Connection closed. Using offline mode.';
+            fallbackToOfflineMode();
+          };
+          
+          // Handle server messages
+          function handleServerMessage(message) {
+            if (message.event === 'init') {
+              playerId = message.id;
+            } else if (message.event === 'game_state') {
+              generations = message.generations || [];
+              discoveredChords = new Set(message.discoveredChords || []);
+              updateGenerationDisplay();
+            }
+          }
+          
+          // Event listeners for server mode
+          nextGenerationButton.addEventListener('click', () => {
+            if (selectedChord) {
+              ws.send(JSON.stringify({
+                event: 'play_tetrachord',
+                notes: selectedChord.notes
+              }));
+            }
+          });
+        } catch (error) {
+          console.error('Failed to initialize WebSocket:', error);
+          fallbackToOfflineMode();
+        }
+      }
+      
+      function fallbackToOfflineMode() {
+        generations = offlineGenerations;
+        initializeOfflineMode();
+        
+        // Replace event listeners for offline mode
+        replaceEventListeners();
+      }
+      
+      function initializeOfflineMode() {
+        updateGenerationDisplay();
+        
+        // Add the initial chord to the discovery log if it's not already there
+        if (generations.length > 0 && generations[0].options.length > 0) {
+          const rootChord = generations[0].options[0];
+          if (!document.querySelector('.log-chord')?.textContent.includes(rootChord.name)) {
+            addToDiscoveryLog(1, rootChord.name, 'The Sun');
+          }
+        }
+        
+        // Replace event listeners for offline mode
+        replaceEventListeners();
+      }
+      
+      function replaceEventListeners() {
+        // Remove existing listeners
+        const newNextGenButton = nextGenerationButton.cloneNode(true);
+        nextGenerationButton.parentNode.replaceChild(newNextGenButton, nextGenerationButton);
+        
+        const newPrevGenButton = prevGenButton.cloneNode(true);
+        prevGenButton.parentNode.replaceChild(newPrevGenButton, prevGenButton);
+        
+        const newNextButton = nextGenButton.cloneNode(true);
+        nextGenButton.parentNode.replaceChild(newNextButton, nextGenButton);
+        
+        // Add new offline mode listeners
+        newNextGenButton.addEventListener('click', () => {
+          if (currentGeneration < generations.length) {
+            currentGeneration++;
+            updateGenerationDisplay();
+            
+            // Add a sample discovery to the log
+            const generation = generations.find(g => g.id === currentGeneration);
+            if (generation && generation.options.length > 0) {
+              const randomOption = generation.options[Math.floor(Math.random() * generation.options.length)];
+              addToDiscoveryLog(currentGeneration, randomOption.name, '');
+            }
+          }
+        });
+        
+        newPrevGenButton.addEventListener('click', () => {
+          if (currentGeneration > 1) {
+            currentGeneration--;
+            updateGenerationDisplay();
+          }
+        });
+        
+        newNextButton.addEventListener('click', () => {
+          if (currentGeneration < generations.length) {
+            currentGeneration++;
+            updateGenerationDisplay();
+          }
+        });
+      }
       
       function updateGenerationDisplay() {
         const generation = generations.find(g => g.id === currentGeneration) || { options: [] };
@@ -421,35 +556,6 @@
         logEntriesDiv.appendChild(logEntry);
         logEntriesDiv.scrollTop = logEntriesDiv.scrollHeight;
       }
-      
-      // Event listeners
-      nextGenerationButton.addEventListener('click', () => {
-        if (currentGeneration < generations.length) {
-          currentGeneration++;
-          updateGenerationDisplay();
-          
-          // Add a sample discovery to the log
-          const generation = generations.find(g => g.id === currentGeneration);
-          if (generation && generation.options.length > 0) {
-            const randomOption = generation.options[Math.floor(Math.random() * generation.options.length)];
-            addToDiscoveryLog(currentGeneration, randomOption.name, '');
-          }
-        }
-      });
-      
-      prevGenButton.addEventListener('click', () => {
-        if (currentGeneration > 1) {
-          currentGeneration--;
-          updateGenerationDisplay();
-        }
-      });
-      
-      nextGenButton.addEventListener('click', () => {
-        if (currentGeneration < generations.length) {
-          currentGeneration++;
-          updateGenerationDisplay();
-        }
-      });
     });
   </script>
 </body>
