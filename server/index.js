@@ -6,10 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const GameManager = require('./gameManager');
 
 const app = express();
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname, '..')));
-// Also serve static files from the public directory
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });

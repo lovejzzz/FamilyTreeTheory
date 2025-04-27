@@ -204,251 +204,295 @@
       bottom: 100%;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: #fff;
+      background: rgba(60, 20, 20, 0.95);
+      color: #ffdddd;
       padding: 8px 12px;
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 14px;
       white-space: nowrap;
-      visibility: hidden;
+      pointer-events: none;
       opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 10;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+      width: max-content;
+      max-width: 250px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(200, 100, 100, 0.6);
+      font-family: 'Space Grotesk', sans-serif;
     }
     
     .chord-option.cycle:hover::after {
-      visibility: visible;
       opacity: 1;
-      bottom: calc(100% + 10px);
+      transform: translateX(-50%) translateY(-10px);
     }
     
-    /* Chord name styling */
-    .chord-name {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ffcc00;
-      margin-bottom: 5px;
-      text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-      text-align: center;
-    }
-    
-    .chord-option.selected .chord-name {
-      animation: pulse-scale 1.5s infinite alternate ease-in-out;
-    }
-    
-    /* Chord notes styling */
-    .chord-notes {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      color: #88c0ff;
-      text-align: center;
-    }
-    
-    /* Navigation buttons */
-    .gen-nav-button {
-      background: rgba(30, 40, 70, 0.6);
-      border: 1px solid rgba(99, 155, 255, 0.4);
+    /* Add a small warning icon to cycle cards */
+    .chord-option.cycle::before {
+      content: '!';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
-      width: 36px;
-      height: 36px;
+      background: radial-gradient(circle, rgba(255,100,100,0.8) 0%, rgba(255,100,100,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(255, 100, 100, 0.5);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #88c0ff;
-      font-size: 1.2rem;
-      cursor: pointer;
-      margin: 0 15px;
-      transition: all 0.3s ease;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
     }
     
-    .gen-nav-button:hover {
-      background: rgba(50, 70, 120, 0.8);
-      box-shadow: 0 0 15px rgba(99, 155, 255, 0.5);
-    }
-    
-    .gen-nav-button:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-    
-    /* Generation title */
-    #generationTitle {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.2rem;
-      color: #e0e6ff;
-      margin: 0;
-      min-width: 150px;
+    .chord-option .notes {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: #ffcc00;
       text-align: center;
     }
     
-    /* Next generation button */
+    .chord-option.seen-before .notes {
+      color: #aaaaaa;
+    }
+    
+    .chord-option .chord-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(to right, #4f71be, #8a2be2);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-top: 10px;
+      text-shadow: 0 0 8px rgba(99, 155, 255, 0.3);
+      letter-spacing: 1px;
+    }
+    
+    .chord-option.seen-before .chord-name {
+      background: linear-gradient(to right, #777, #999);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    
+    /* Add a small planet icon to each card */
+    .chord-option::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,204,0,0.8) 0%, rgba(255,204,0,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+    }
+    
+    .chord-option.seen-before::before {
+      background: radial-gradient(circle, rgba(170,170,170,0.8) 0%, rgba(170,170,170,0.2) 70%, transparent 100%);
+      box-shadow: 0 0 5px rgba(170, 170, 170, 0.5);
+    }
+    
+    /* Custom tooltip for previously discovered chords */
+    .chord-option.seen-before {
+      position: relative;
+    }
+    
+    .chord-option.seen-before::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(20, 30, 60, 0.95);
+      color: #e0e6ff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 100;
+      width: max-content;
+      max-width: 250px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(99, 155, 255, 0.4);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .chord-option.seen-before:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-10px);
+    }
+    
+    /* Animation for when a chord card is clicked to focus on it in the 3D graph */
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+      50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+    }
+    
+    .chord-option.focusing {
+      animation: pulse-glow 0.3s ease-in-out;
+    }
+    
+    /* Make all chord cards have a pointer cursor to indicate they're clickable */
+    .chord-option {
+      cursor: pointer;
+    }
+    
+    .gen-nav-button {
+      background: linear-gradient(135deg, #4f71be, #8a2be2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 15px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
     .next-button {
       background: linear-gradient(135deg, #50c5b7, #4f71be);
       color: white;
       border: none;
       padding: 12px 30px;
-      border-radius: 30px;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1rem;
+      font-size: 18px;
+      border-radius: 5px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: background-color 0.3s;
+      margin: 20px auto;
       display: block;
-      margin: 20px auto 0;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      width: 200px;
+      font-family: 'Exo 2', sans-serif;
+      font-weight: bold;
     }
     
-    .next-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      background: linear-gradient(135deg, #5ad3c5, #5a7dcb);
+    h3, h4 {
+      font-family: 'Orbitron', sans-serif;
+      color: #e0e6ff;
+      text-shadow: 0 0 10px rgba(99, 155, 255, 0.5);
+      letter-spacing: 1px;
+      margin-top: 0;
+      margin-bottom: 15px;
     }
     
-    .next-button:active {
-      transform: translateY(1px);
+    /* 3D Graph Container */
+    #chord3dContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
     
     /* Tooltip styling */
     .chord-tooltip {
       position: absolute;
-      background: rgba(10, 15, 30, 0.95);
-      border: 1px solid rgba(99, 155, 255, 0.4);
+      display: none;
+      background-color: rgba(16, 23, 41, 0.9);
+      color: white;
       border-radius: 8px;
       padding: 15px;
-      width: 280px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      min-width: 200px;
+      max-width: 300px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      border: 1px solid rgba(99, 155, 255, 0.3);
     }
     
-    .tooltip-chord {
-      text-align: center;
-      padding: 8px;
-      background: rgba(30, 40, 70, 0.6);
-      border-radius: 6px;
-      margin: 5px 0;
+    /* Add a tooltip arrow pointing to the planet */
+    .chord-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      margin-left: -10px;
+      border-width: 10px 10px 0;
+      border-style: solid;
+      border-color: rgba(16, 23, 41, 0.9) transparent transparent transparent;
     }
     
     .tooltip-chord h4 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.3rem;
-      color: #ffcc00;
       margin: 0;
-      text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+      font-size: 1.5em;
+      color: #FFA500;
+      word-break: break-word;
+      white-space: normal;
     }
     
-    .tooltip-parents, .tooltip-children {
-      font-size: 0.9rem;
-    }
-    
-    .tooltip-parents h5, .tooltip-children h5 {
-      font-family: 'Space Grotesk', sans-serif;
-      color: #88c0ff;
+    /* Ensure all chord names in tooltips wrap properly */
+    .tooltip-list div {
+      word-break: break-word;
+      white-space: normal;
       margin-bottom: 5px;
+      display: block;
     }
     
-    .tooltip-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
+    /* Style for each tooltip item */
+    .tooltip-item {
+      padding: 3px 0;
+      border-bottom: 1px dotted rgba(99, 155, 255, 0.2);
+      display: block;
     }
     
-    .tooltip-chord-item {
-      background: rgba(40, 50, 80, 0.6);
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
+    .tooltip-item:last-child {
+      border-bottom: none;
     }
     
-    /* Error message */
-    .error {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(200, 50, 50, 0.9);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      z-index: 1000;
-    }
-    
-    /* Note tree styling */
-    .note-tree {
-      margin-top: 15px;
-    }
-    
-    .tree-branch {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    
-    .note-option {
-      background: rgba(30, 40, 70, 0.6);
-      border: 1px solid rgba(99, 155, 255, 0.4);
-      border-radius: 6px;
-      padding: 8px 15px;
-      font-family: 'JetBrains Mono', monospace;
-      color: #e0e6ff;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .note-option:hover {
-      background: rgba(50, 70, 120, 0.8);
-      box-shadow: 0 0 15px rgba(99, 155, 255, 0.5);
-    }
-    
-    /* Completion screen */
-    .completion-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(10, 14, 23, 0.9);
+    /* Game-like completion message styles */
+    .completion-message {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(25, 33, 58, 0.8), rgba(10, 14, 23, 0.9));
+      border-radius: 15px;
+      border: 2px solid #4f71be;
+      box-shadow: 0 0 30px rgba(79, 113, 190, 0.6), inset 0 0 20px rgba(138, 43, 226, 0.4);
+      animation: pulse-glow 2s infinite alternate;
+      margin: 30px auto;
+      max-width: 90%;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease;
+      align-items: center;
+      min-height: 200px;
+      position: fixed;
+      z-index: 9999;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 600px;
     }
     
-    .completion-content {
-      text-align: center;
-      max-width: 800px;
-      padding: 40px;
-      background: rgba(16, 23, 41, 0.8);
-      border: 1px solid rgba(99, 155, 255, 0.3);
-      border-radius: 20px;
-      box-shadow: 0 0 50px rgba(79, 113, 190, 0.6), inset 0 0 30px rgba(138, 43, 226, 0.4);
-      animation: pulse-glow 3s infinite alternate ease-in-out;
+    /* Style for the options container when showing completion */
+    .options-container.showing-completion {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
     }
     
     .completion-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 3rem;
-      background: linear-gradient(to right, #4f71be, #8a2be2);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-bottom: 20px;
-      text-shadow: 0 0 15px rgba(99, 155, 255, 0.7);
+      font-weight: bold;
+      color: #f8d210;
+      text-shadow: 0 0 10px rgba(248, 210, 16, 0.8), 0 0 20px rgba(248, 210, 16, 0.5);
+      margin-bottom: 15px;
+      letter-spacing: 2px;
+      transform: scale(1);
+      animation: pulse-scale 1.5s infinite alternate;
     }
     
     .completion-subtitle {
