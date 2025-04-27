@@ -183,78 +183,12 @@
       box-shadow: 0 0 20px rgba(99, 155, 255, 0.7);
     }
     
-    .chord-option.seen-before {
-      background: linear-gradient(135deg, rgba(60, 60, 70, 0.8), rgba(40, 40, 50, 0.8));
-      border-color: rgba(120, 120, 140, 0.4);
-      color: rgba(200, 200, 220, 0.7);
-    }
-    
-    .chord-option.cycle {
-      background: linear-gradient(135deg, rgba(100, 50, 50, 0.8), rgba(70, 30, 30, 0.8));
-      border-color: rgba(200, 100, 100, 0.6);
-      opacity: 0.8;
-      cursor: not-allowed;
-      position: relative;
-    }
-    
-    /* Custom tooltip for cycle cards */
-    .chord-option.cycle::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(60, 20, 20, 0.95);
-      color: #ffdddd;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      z-index: 100;
-      width: max-content;
-      max-width: 250px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(200, 100, 100, 0.6);
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    
-    .chord-option.cycle:hover::after {
-      opacity: 1;
-      transform: translateX(-50%) translateY(-10px);
-    }
-    
-    /* Add a small warning icon to cycle cards */
-    .chord-option.cycle::before {
-      content: '!';
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,100,100,0.8) 0%, rgba(255,100,100,0.2) 70%, transparent 100%);
-      box-shadow: 0 0 5px rgba(255, 100, 100, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: bold;
-      color: white;
-    }
-    
     .chord-option .notes {
       font-family: 'JetBrains Mono', monospace;
       font-size: 14px;
       margin-bottom: 8px;
       color: #ffcc00;
       text-align: center;
-    }
-    
-    .chord-option.seen-before .notes {
-      color: #aaaaaa;
     }
     
     .chord-option .chord-name {
@@ -269,79 +203,6 @@
       margin-top: 10px;
       text-shadow: 0 0 8px rgba(99, 155, 255, 0.3);
       letter-spacing: 1px;
-    }
-    
-    .chord-option.seen-before .chord-name {
-      background: linear-gradient(to right, #777, #999);
-      -webkit-background-clip: text;
-      background-clip: text;
-    }
-    
-    /* Add a small planet icon to each card */
-    .chord-option::before {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,204,0,0.8) 0%, rgba(255,204,0,0.2) 70%, transparent 100%);
-      box-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
-    }
-    
-    .chord-option.seen-before::before {
-      background: radial-gradient(circle, rgba(170,170,170,0.8) 0%, rgba(170,170,170,0.2) 70%, transparent 100%);
-      box-shadow: 0 0 5px rgba(170, 170, 170, 0.5);
-    }
-    
-    /* Custom tooltip for previously discovered chords */
-    .chord-option.seen-before {
-      position: relative;
-    }
-    
-    .chord-option.seen-before::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(20, 30, 60, 0.95);
-      color: #e0e6ff;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      z-index: 100;
-      width: max-content;
-      max-width: 250px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(99, 155, 255, 0.4);
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    
-    .chord-option.seen-before:hover::after {
-      opacity: 1;
-      transform: translateX(-50%) translateY(-10px);
-    }
-    
-    /* Animation for when a chord card is clicked to focus on it in the 3D graph */
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
-      50% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); }
-      100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
-    }
-    
-    .chord-option.focusing {
-      animation: pulse-glow 0.3s ease-in-out;
-    }
-    
-    /* Make all chord cards have a pointer cursor to indicate they're clickable */
-    .chord-option {
-      cursor: pointer;
     }
     
     .gen-nav-button {
@@ -385,141 +246,6 @@
       margin-bottom: 15px;
     }
     
-    /* 3D Graph Container */
-    #chord3dContainer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-    
-    /* Tooltip styling */
-    .chord-tooltip {
-      position: absolute;
-      display: none;
-      background-color: rgba(16, 23, 41, 0.9);
-      color: white;
-      border-radius: 8px;
-      padding: 15px;
-      min-width: 200px;
-      max-width: 300px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      border: 1px solid rgba(99, 155, 255, 0.3);
-    }
-    
-    /* Add a tooltip arrow pointing to the planet */
-    .chord-tooltip::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      margin-left: -10px;
-      border-width: 10px 10px 0;
-      border-style: solid;
-      border-color: rgba(16, 23, 41, 0.9) transparent transparent transparent;
-    }
-    
-    .tooltip-chord h4 {
-      margin: 0;
-      font-size: 1.5em;
-      color: #FFA500;
-      word-break: break-word;
-      white-space: normal;
-    }
-    
-    /* Ensure all chord names in tooltips wrap properly */
-    .tooltip-list div {
-      word-break: break-word;
-      white-space: normal;
-      margin-bottom: 5px;
-      display: block;
-    }
-    
-    /* Style for each tooltip item */
-    .tooltip-item {
-      padding: 3px 0;
-      border-bottom: 1px dotted rgba(99, 155, 255, 0.2);
-      display: block;
-    }
-    
-    .tooltip-item:last-child {
-      border-bottom: none;
-    }
-    
-    /* Game-like completion message styles */
-    .completion-message {
-      text-align: center;
-      padding: 20px;
-      background: linear-gradient(135deg, rgba(25, 33, 58, 0.8), rgba(10, 14, 23, 0.9));
-      border-radius: 15px;
-      border: 2px solid #4f71be;
-      box-shadow: 0 0 30px rgba(79, 113, 190, 0.6), inset 0 0 20px rgba(138, 43, 226, 0.4);
-      animation: pulse-glow 2s infinite alternate;
-      margin: 30px auto;
-      max-width: 90%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 200px;
-      position: fixed;
-      z-index: 9999;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      max-width: 600px;
-    }
-    
-    /* Style for the options container when showing completion */
-    .options-container.showing-completion {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 300px;
-    }
-    
-    .completion-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 3rem;
-      font-weight: bold;
-      color: #f8d210;
-      text-shadow: 0 0 10px rgba(248, 210, 16, 0.8), 0 0 20px rgba(248, 210, 16, 0.5);
-      margin-bottom: 15px;
-      letter-spacing: 2px;
-      transform: scale(1);
-      animation: pulse-scale 1.5s infinite alternate;
-    }
-    
-    .completion-subtitle {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.5rem;
-      color: #e0e6ff;
-      margin-bottom: 20px;
-      text-shadow: 0 0 8px rgba(224, 230, 255, 0.6);
-    }
-    
-    /* Stars removed as requested */
-    
-    @keyframes pulse-glow {
-      0% { box-shadow: 0 0 30px rgba(79, 113, 190, 0.6), inset 0 0 20px rgba(138, 43, 226, 0.4); }
-      100% { box-shadow: 0 0 50px rgba(79, 113, 190, 0.8), inset 0 0 30px rgba(138, 43, 226, 0.6); }
-    }
-    
-    @keyframes pulse-scale {
-      0% { transform: scale(1); text-shadow: 0 0 10px rgba(248, 210, 16, 0.8), 0 0 20px rgba(248, 210, 16, 0.5); }
-      100% { transform: scale(1.05); text-shadow: 0 0 15px rgba(248, 210, 16, 0.9), 0 0 30px rgba(248, 210, 16, 0.7); }
-    }
-    
-    @keyframes twinkle {
-      0% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
-    
     /* Responsive adjustments */
     @media (max-width: 1200px) {
       .container {
@@ -536,14 +262,6 @@
         height: 500px;
         margin-bottom: 20px;
       }
-      
-      .completion-title {
-        font-size: 2.5rem;
-      }
-      
-      .completion-subtitle {
-        font-size: 1.2rem;
-      }
     }
   </style>
 </head>
@@ -555,7 +273,6 @@
       <!-- Left Column -->
       <div class="left-column">
         <div id="gameControls" class="module">
-          <!-- Removed Chord Progression Explorer title as requested -->
           <div id="chordDisplay">
             <div id="discoveryLog" class="discovery-log">
               <h4>Discovery Log:</h4>
@@ -578,15 +295,9 @@
           </div>
           <button id="nextGenerationButton" class="next-button">Next Generation</button>
         </div>
-        <div id="noteOptions" class="module" style="display: none;">
-          <h3>Valid 4th Note Options:</h3>
-          <div class="note-tree">
-            <div class="tree-branch" id="validOptions"></div>
-          </div>
-        </div>
       </div>
       
-      <!-- Right Column - 3D Graph -->
+      <!-- Right Column - Placeholder for 3D Graph -->
       <div class="right-column">
         <div id="chordGraph" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
           <div id="chord3dContainer"></div>
@@ -598,257 +309,121 @@
   <div id="log"></div>
   <div id="error" class="error"></div>
   
-  <!-- Tooltip for chord information on hover -->
-  <div id="chordTooltip" class="chord-tooltip">
-    <div class="tooltip-parents">
-      <h5>Parents:</h5>
-      <div id="tooltipParents" class="tooltip-list"></div>
-    </div>
-    <div class="tooltip-chord">
-      <h4 id="tooltipChord"></h4>
-    </div>
-    <div class="tooltip-children">
-      <h5>Children:</h5>
-      <div id="tooltipChildren" class="tooltip-list"></div>
-    </div>
-  </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
-  <script type="module">
-    // Import modules with adjusted paths for GitHub Pages
-    import { playTetrachord } from './public/audio.js';
-    import { recognizeChord } from './public/chords.js';
-    import Chord3DGraph from './public/chord3dGraph.js';
-    
-    // Set up WebSocket connection
-    const protocol = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-      ? (location.protocol === 'https:' ? 'wss' : 'ws')
-      : 'wss'; // Use secure WebSocket for GitHub Pages
-    
-    const wsHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? window.location.host
-      : 'your-websocket-server.com'; // Replace with your actual WebSocket server if you have one for production
-    
-    const ws = new WebSocket(`${protocol}://${wsHost}`);
-    
-    // DOM elements
-    const chordNotesDiv = document.getElementById('chordNotes');
-    const chordTypeDiv = document.getElementById('chordType');
-    const nextGenerationButton = document.getElementById('nextGenerationButton');
-    const prevGenButton = document.getElementById('prevGenButton');
-    const nextGenButton = document.getElementById('nextGenButton');
-    const generationTitle = document.getElementById('generationTitle');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const errorDiv = document.getElementById('error');
-    const logEntriesDiv = document.getElementById('logEntries');
-    
-    // Initialize 3D chord graph
-    const chordGraph = new Chord3DGraph('chord3dContainer');
-    
-    // Game state
-    let playerId = null;
-    let currentGeneration = 1;
-    let selectedChord = null;
-    let generations = [];
-    let discoveredChords = new Set();
-    
-    // Placeholder data for offline mode (GitHub Pages)
-    const offlineGenerations = [
-      {
-        id: 1,
-        title: "Generation 1",
-        options: [
-          { notes: [7, 11, 2, 5], name: "G7", isRoot: true }
-        ]
-      },
-      {
-        id: 2,
-        title: "Generation 2",
-        options: [
-          { notes: [0, 4, 7, 11], name: "Cmaj7", parent: "G7" },
-          { notes: [5, 9, 0, 4], name: "Fmaj7", parent: "G7" },
-          { notes: [7, 11, 2, 6], name: "G7b5", parent: "G7" },
-          { notes: [7, 10, 2, 5], name: "Gm7", parent: "G7" }
-        ]
-      },
-      {
-        id: 3,
-        title: "Generation 3",
-        options: [
-          { notes: [2, 5, 9, 0], name: "Dm7", parent: "Cmaj7" },
-          { notes: [11, 2, 5, 9], name: "B°7", parent: "Cmaj7" },
-          { notes: [4, 7, 11, 2], name: "Em7", parent: "Cmaj7" },
-          { notes: [9, 0, 4, 7], name: "Am7", parent: "Cmaj7" }
-        ]
-      }
-    ];
-    
-    // Check if we're on GitHub Pages or similar static hosting
-    const isStaticHosting = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    
-    // Initialize with offline data if we're on GitHub Pages
-    if (isStaticHosting) {
-      generations = offlineGenerations;
-      initializeOfflineMode();
-    }
-    
-    // WebSocket event handlers
-    ws.onopen = () => {
-      console.log('Connected to server');
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        handleServerMessage(message);
-      } catch (error) {
-        console.error('Error parsing message:', error);
-      }
-    };
-    
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      if (!isStaticHosting) {
-        errorDiv.textContent = 'Connection error. Please refresh the page.';
-        initializeOfflineMode(); // Fall back to offline mode
-      }
-    };
-    
-    ws.onclose = () => {
-      console.log('Disconnected from server');
-      if (!isStaticHosting) {
-        errorDiv.textContent = 'Connection closed. Please refresh the page.';
-        initializeOfflineMode(); // Fall back to offline mode
-      }
-    };
-    
-    function handleServerMessage(message) {
-      if (message.event === 'init') {
-        playerId = message.id;
-      } else if (message.event === 'game_state') {
-        generations = message.generations || [];
-        discoveredChords = new Set(message.discoveredChords || []);
-        updateGenerationDisplay();
-        updateChordGraph();
-      }
-    }
-    
-    function initializeOfflineMode() {
-      console.log('Running in offline mode with sample data');
-      updateGenerationDisplay();
-      updateChordGraph();
+  <script>
+    // Simple standalone version without 3D visualization
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM elements
+      const nextGenerationButton = document.getElementById('nextGenerationButton');
+      const prevGenButton = document.getElementById('prevGenButton');
+      const nextGenButton = document.getElementById('nextGenButton');
+      const generationTitle = document.getElementById('generationTitle');
+      const optionsContainer = document.getElementById('optionsContainer');
+      const logEntriesDiv = document.getElementById('logEntries');
       
-      // Add the initial chord to the discovery log
-      if (generations.length > 0 && generations[0].options.length > 0) {
-        const rootChord = generations[0].options[0];
-        addToDiscoveryLog(1, rootChord.name, 'The Sun');
-      }
-    }
-    
-    function updateGenerationDisplay() {
-      const generation = generations.find(g => g.id === currentGeneration) || { options: [] };
-      generationTitle.textContent = generation.title || `Generation ${currentGeneration}`;
+      // Game state
+      let currentGeneration = 1;
+      let selectedChord = null;
       
-      optionsContainer.innerHTML = '';
-      
-      generation.options.forEach(option => {
-        const chordCard = document.createElement('div');
-        chordCard.className = 'chord-option';
-        if (selectedChord && option.notes.toString() === selectedChord.notes.toString()) {
-          chordCard.classList.add('selected');
+      // Simplified data for GitHub Pages
+      const generations = [
+        {
+          id: 1,
+          title: "Generation 1",
+          options: [
+            { notes: [7, 11, 2, 5], name: "G7", isRoot: true }
+          ]
+        },
+        {
+          id: 2,
+          title: "Generation 2",
+          options: [
+            { notes: [0, 4, 7, 11], name: "Cmaj7", parent: "G7" },
+            { notes: [5, 9, 0, 4], name: "Fmaj7", parent: "G7" },
+            { notes: [7, 11, 2, 6], name: "G7b5", parent: "G7" },
+            { notes: [7, 10, 2, 5], name: "Gm7", parent: "G7" }
+          ]
+        },
+        {
+          id: 3,
+          title: "Generation 3",
+          options: [
+            { notes: [2, 5, 9, 0], name: "Dm7", parent: "Cmaj7" },
+            { notes: [11, 2, 5, 9], name: "B°7", parent: "Cmaj7" },
+            { notes: [4, 7, 11, 2], name: "Em7", parent: "Cmaj7" },
+            { notes: [9, 0, 4, 7], name: "Am7", parent: "Cmaj7" }
+          ]
         }
-        
-        const notesElement = document.createElement('div');
-        notesElement.className = 'notes';
-        notesElement.textContent = option.notes.join(' - ');
-        
-        const nameElement = document.createElement('div');
-        nameElement.className = 'chord-name';
-        nameElement.textContent = option.name;
-        
-        chordCard.appendChild(notesElement);
-        chordCard.appendChild(nameElement);
-        
-        chordCard.addEventListener('click', () => {
-          document.querySelectorAll('.chord-option').forEach(card => {
-            card.classList.remove('selected');
-          });
-          chordCard.classList.add('selected');
-          selectedChord = option;
-          
-          // Play the chord
-          playTetrachord(option.notes);
-          
-          // Focus on this chord in the 3D graph
-          chordGraph.focusOnChord(option.name);
-        });
-        
-        optionsContainer.appendChild(chordCard);
-      });
+      ];
       
-      // Update navigation button states
-      prevGenButton.disabled = currentGeneration <= 1;
-      nextGenButton.disabled = currentGeneration >= generations.length;
-    }
-    
-    function updateChordGraph() {
-      // Clear existing nodes
-      chordGraph.clear();
+      // Initialize the display
+      updateGenerationDisplay();
       
-      // Add all chords from all generations
-      const allChords = [];
-      const relationships = [];
-      
-      generations.forEach(generation => {
+      function updateGenerationDisplay() {
+        const generation = generations.find(g => g.id === currentGeneration) || { options: [] };
+        generationTitle.textContent = generation.title || `Generation ${currentGeneration}`;
+        
+        optionsContainer.innerHTML = '';
+        
         generation.options.forEach(option => {
-          allChords.push({
-            id: option.name,
-            name: option.name,
-            notes: option.notes,
-            generation: generation.id
+          const chordCard = document.createElement('div');
+          chordCard.className = 'chord-option';
+          if (selectedChord && option.notes.toString() === selectedChord.notes.toString()) {
+            chordCard.classList.add('selected');
+          }
+          
+          const notesElement = document.createElement('div');
+          notesElement.className = 'notes';
+          notesElement.textContent = option.notes.join(' - ');
+          
+          const nameElement = document.createElement('div');
+          nameElement.className = 'chord-name';
+          nameElement.textContent = option.name;
+          
+          chordCard.appendChild(notesElement);
+          chordCard.appendChild(nameElement);
+          
+          chordCard.addEventListener('click', () => {
+            document.querySelectorAll('.chord-option').forEach(card => {
+              card.classList.remove('selected');
+            });
+            chordCard.classList.add('selected');
+            selectedChord = option;
           });
           
-          if (option.parent) {
-            relationships.push({
-              source: option.parent,
-              target: option.name
-            });
-          }
+          optionsContainer.appendChild(chordCard);
         });
-      });
+        
+        // Update navigation button states
+        prevGenButton.disabled = currentGeneration <= 1;
+        nextGenButton.disabled = currentGeneration >= generations.length;
+      }
       
-      // Add nodes and links to the graph
-      chordGraph.setData(allChords, relationships);
-    }
-    
-    function addToDiscoveryLog(generation, chordName, description) {
-      const logEntry = document.createElement('div');
-      logEntry.className = 'log-entry';
+      function addToDiscoveryLog(generation, chordName, description) {
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        const genSpan = document.createElement('span');
+        genSpan.className = 'log-gen';
+        genSpan.textContent = `Gen ${generation}:`;
+        
+        const chordSpan = document.createElement('span');
+        chordSpan.className = 'log-chord';
+        chordSpan.textContent = chordName;
+        
+        const descSpan = document.createElement('span');
+        descSpan.className = 'log-desc';
+        descSpan.textContent = description ? ` (${description})` : '';
+        
+        logEntry.appendChild(genSpan);
+        logEntry.appendChild(chordSpan);
+        logEntry.appendChild(descSpan);
+        
+        logEntriesDiv.appendChild(logEntry);
+        logEntriesDiv.scrollTop = logEntriesDiv.scrollHeight;
+      }
       
-      const genSpan = document.createElement('span');
-      genSpan.className = 'log-gen';
-      genSpan.textContent = `Gen ${generation}:`;
-      
-      const chordSpan = document.createElement('span');
-      chordSpan.className = 'log-chord';
-      chordSpan.textContent = chordName;
-      
-      const descSpan = document.createElement('span');
-      descSpan.className = 'log-desc';
-      descSpan.textContent = description ? ` (${description})` : '';
-      
-      logEntry.appendChild(genSpan);
-      logEntry.appendChild(chordSpan);
-      logEntry.appendChild(descSpan);
-      
-      logEntriesDiv.appendChild(logEntry);
-      logEntriesDiv.scrollTop = logEntriesDiv.scrollHeight;
-    }
-    
-    // Event listeners
-    nextGenerationButton.addEventListener('click', () => {
-      if (isStaticHosting) {
-        // In offline mode, just advance to the next generation if available
+      // Event listeners
+      nextGenerationButton.addEventListener('click', () => {
         if (currentGeneration < generations.length) {
           currentGeneration++;
           updateGenerationDisplay();
@@ -860,68 +435,21 @@
             addToDiscoveryLog(currentGeneration, randomOption.name, '');
           }
         }
-      } else {
-        // In online mode, send the selection to the server
-        if (selectedChord) {
-          ws.send(JSON.stringify({
-            event: 'play_tetrachord',
-            notes: selectedChord.notes
-          }));
+      });
+      
+      prevGenButton.addEventListener('click', () => {
+        if (currentGeneration > 1) {
+          currentGeneration--;
+          updateGenerationDisplay();
         }
-      }
-    });
-    
-    prevGenButton.addEventListener('click', () => {
-      if (currentGeneration > 1) {
-        currentGeneration--;
-        updateGenerationDisplay();
-      }
-    });
-    
-    nextGenButton.addEventListener('click', () => {
-      if (currentGeneration < generations.length) {
-        currentGeneration++;
-        updateGenerationDisplay();
-      }
-    });
-  </script>
-  <script src="public/chord-text-fit.js"></script>
-  
-  <!-- Script to ensure 3D graph renders properly -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Force the 3D graph to render properly
-      setTimeout(function() {
-        console.log('Fixing 3D graph layout');
-        
-        // Get references to the containers
-        const chordGraph = document.getElementById('chordGraph');
-        const chord3dContainer = document.getElementById('chord3dContainer');
-        
-        if (chordGraph && chord3dContainer) {
-          // Check for canvas periodically until it's created
-          const checkForCanvas = setInterval(function() {
-            const canvas = chord3dContainer.querySelector('canvas');
-            if (canvas) {
-              console.log('Canvas found, applying styles');
-              canvas.style.width = '100%';
-              canvas.style.height = '100%';
-              canvas.style.position = 'absolute';
-              canvas.style.top = '0';
-              canvas.style.left = '0';
-              clearInterval(checkForCanvas);
-              
-              // Force a resize event
-              window.dispatchEvent(new Event('resize'));
-            }
-          }, 100);
-          
-          // Stop checking after 5 seconds to prevent infinite loop
-          setTimeout(function() {
-            clearInterval(checkForCanvas);
-          }, 5000);
+      });
+      
+      nextGenButton.addEventListener('click', () => {
+        if (currentGeneration < generations.length) {
+          currentGeneration++;
+          updateGenerationDisplay();
         }
-      }, 500);
+      });
     });
   </script>
 </body>
