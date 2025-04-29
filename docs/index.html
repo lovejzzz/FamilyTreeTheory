@@ -10,6 +10,22 @@
     #chord3dContainer, .right-column, canvas, #chordGraph {
       background-color: transparent !important;
     }
+    
+    /* Prevent text selection for most elements */
+    body, h1, h2, h3, h4, h5, h6, button, .chord-option, .generation-header, .completion-message, .module:not(.discovery-log) {
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+    
+    /* Allow text selection only for the log entries */
+    .log-entries {
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+    }
   </style>
   
   <!-- Space theme fonts -->
