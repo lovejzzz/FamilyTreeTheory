@@ -76,6 +76,9 @@ class Chord3DGraph {
       return;
     }
     
+    // Set container background to transparent immediately
+    this.container.style.backgroundColor = 'transparent';
+    
     // Force container styles to ensure proper rendering
     this.container.style.position = 'relative';
     this.container.style.width = '100%';
@@ -91,16 +94,29 @@ class Chord3DGraph {
     
     // Create scene
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0e17); // Match space theme background
+    // Using transparent background instead of solid color
     
     // Create camera
     this.camera = new THREE.PerspectiveCamera(60, this.width / this.height, 0.1, 1000);
     this.camera.position.set(0, 0, 200);
     
-    // Create renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Create renderer with transparent background
+    this.renderer = new THREE.WebGLRenderer({ 
+      antialias: true, 
+      alpha: true,
+      premultipliedAlpha: false,
+      preserveDrawingBuffer: false
+    });
     this.renderer.setSize(this.width, this.height, false);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setClearColor(0x000000, 0); // Set to fully transparent
+    this.renderer.domElement.style.backgroundColor = 'transparent';
+    this.renderer.domElement.style.opacity = '0';
+    
+    // We'll use this to control the fade-in of the entire scene
+    this.fadeInProgress = true;
+    this.fadeInStartTime = null;
+    this.fadeInDuration = 1500; // 1.5 seconds for a smoother fade
     
     // Clear the container first
     while (this.container.firstChild) {
@@ -398,6 +414,64 @@ class Chord3DGraph {
   
   animate() {
     requestAnimationFrame(this.animate.bind(this));
+    
+    // Handle fade-in animation
+    if (this.fadeInProgress) {
+      if (this.fadeInStartTime === null) {
+        this.fadeInStartTime = Date.now();
+        // Make the container visible but with opacity 0
+        const graphContainer = document.getElementById('graphContainer');
+        if (graphContainer) {
+          graphContainer.style.visibility = 'visible';
+          graphContainer.style.opacity = '0';
+          graphContainer.style.transition = `opacity ${this.fadeInDuration/1000}s ease-in-out`;
+        }
+      }
+      
+      const elapsedTime = Date.now() - this.fadeInStartTime;
+      const progress = Math.min(elapsedTime / this.fadeInDuration, 1);
+      
+      // Gradually fade in the canvas
+      this.renderer.domElement.style.opacity = progress.toString();
+      
+      // Gradually fade in the container
+      const graphContainer = document.getElementById('graphContainer');
+      if (graphContainer) {
+        graphContainer.style.opacity = progress.toString();
+      }
+      
+      // Gradually fade in and scale up each planet
+      this.nodeObjects.forEach(obj => {
+        // Store the original scale if we haven't already
+        if (!obj.userData.originalScale) {
+          obj.userData.originalScale = obj.scale.x;
+          // Start with a smaller scale
+          obj.scale.set(0.01, 0.01, 0.01);
+        }
+        
+        // Scale up to the original size
+        const targetScale = obj.userData.originalScale;
+        const currentScale = obj.scale.x + (targetScale - obj.scale.x) * progress * 0.1;
+        obj.scale.set(currentScale, currentScale, currentScale);
+        
+        // Also fade in the material
+        if (obj.material) {
+          obj.material.opacity = progress;
+        }
+      });
+      
+      // Fade in the connections
+      this.linkObjects.forEach(obj => {
+        if (obj.material) {
+          obj.material.opacity = progress * 0.7; // Keep connections slightly transparent
+        }
+      });
+      
+      // End the fade-in when complete
+      if (progress >= 1) {
+        this.fadeInProgress = false;
+      }
+    }
     
     // Check if we need to resize
     if (this.container && this.renderer) {
@@ -1159,6 +1233,17 @@ class Chord3DGraph {
           ctx.arc(x, y, size, 0, Math.PI * 2);
           ctx.fill();
         }
+        
+        // Add cloud patterns
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        for (let i = 0; i < 10; i++) {
+          ctx.beginPath();
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const size = 10 + Math.random() * 30;
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }),
       
       'mars': this.createCanvasTexture(512, (ctx, canvas) => {
@@ -1180,6 +1265,15 @@ class Chord3DGraph {
           ctx.arc(x, y, size, 0, Math.PI * 2);
           ctx.fill();
         }
+        
+        // Add polar ice caps
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(canvas.width/2, 20, 80, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(canvas.width/2, canvas.height - 20, 60, 0, Math.PI * 2);
+        ctx.fill();
       }),
       
       'moon': this.createCanvasTexture(512, (ctx, canvas) => {
@@ -1201,28 +1295,38 @@ class Chord3DGraph {
       }),
       
       'gas': this.createCanvasTexture(512, (ctx, canvas) => {
-        // Gas giant texture for augmented/diminished chords
+        // Gas giant texture for augmented/diminished chords (Jupiter-like)
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-        gradient.addColorStop(0, '#9370DB');   // Medium purple
-        gradient.addColorStop(0.3, '#8A2BE2'); // Blue violet
-        gradient.addColorStop(0.6, '#9400D3'); // Dark violet
-        gradient.addColorStop(1, '#800080');   // Purple
+        gradient.addColorStop(0, '#F4A460');   // Sandy brown
+        gradient.addColorStop(0.3, '#CD853F'); // Peru
+        gradient.addColorStop(0.6, '#D2691E'); // Chocolate
+        gradient.addColorStop(1, '#8B4513');   // Saddle brown
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Add swirls
-        for (let i = 0; i < 5; i++) {
+        // Add Jupiter-like bands
+        for (let i = 0; i < 8; i++) {
           ctx.beginPath();
-          const y = i * canvas.height / 5 + Math.random() * 30;
+          const y = i * canvas.height / 8 + Math.random() * 10;
           ctx.moveTo(0, y);
-          for (let x = 0; x < canvas.width; x += 10) {
-            const amplitude = 10 + Math.random() * 10;
-            ctx.lineTo(x, y + Math.sin(x/30) * amplitude);
+          for (let x = 0; x < canvas.width; x += 5) {
+            const amplitude = 5 + Math.random() * 8;
+            ctx.lineTo(x, y + Math.sin(x/20) * amplitude);
           }
-          ctx.lineWidth = 10 + Math.random() * 20;
-          ctx.strokeStyle = `rgba(255,255,255,0.2)`;
+          ctx.lineWidth = 15 + Math.random() * 25;
+          const alpha = 0.2 + Math.random() * 0.3;
+          const shade = Math.random() > 0.5 ? 'rgba(255,255,255,' + alpha + ')' : 'rgba(139,69,19,' + alpha + ')';
+          ctx.strokeStyle = shade;
           ctx.stroke();
         }
+        
+        // Add the Great Red Spot
+        ctx.beginPath();
+        const spotX = canvas.width * 0.7;
+        const spotY = canvas.height * 0.4;
+        ctx.ellipse(spotX, spotY, 50, 30, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(178,34,34,0.7)'; // Firebrick with transparency
+        ctx.fill();
       }),
       
       'lava': this.createCanvasTexture(512, (ctx, canvas) => {
@@ -1247,27 +1351,32 @@ class Chord3DGraph {
       }),
       
       'ice': this.createCanvasTexture(512, (ctx, canvas) => {
-        // Ice planet for maj7 chords
+        // Neptune-like ice planet for maj7 chords
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#F0FFFF');   // Azure
-        gradient.addColorStop(0.5, '#E0FFFF'); // Light cyan
-        gradient.addColorStop(1, '#AFEEEE');   // Pale turquoise
+        gradient.addColorStop(0, '#4169E1');   // Royal blue
+        gradient.addColorStop(0.5, '#1E90FF'); // Dodger blue
+        gradient.addColorStop(1, '#00BFFF');   // Deep sky blue
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Add ice cracks
-        ctx.strokeStyle = '#FFFFFF'; // White
-        for (let i = 0; i < 15; i++) {
+        // Add white cloud patterns
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        for (let i = 0; i < 20; i++) {
           ctx.beginPath();
           const x = Math.random() * canvas.width;
           const y = Math.random() * canvas.height;
-          const length = 20 + Math.random() * 50;
-          const angle = Math.random() * Math.PI * 2;
-          ctx.moveTo(x, y);
-          ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
-          ctx.lineWidth = 2;
-          ctx.stroke();
+          const size = 10 + Math.random() * 40;
+          ctx.arc(x, y, size, 0, Math.PI * 2);
+          ctx.fill();
         }
+        
+        // Add the Great Dark Spot
+        ctx.beginPath();
+        const spotX = canvas.width * 0.6;
+        const spotY = canvas.height * 0.3;
+        ctx.ellipse(spotX, spotY, 60, 40, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(25,25,112,0.7)'; // Midnight blue with transparency
+        ctx.fill();
       })
     };
   }
@@ -1340,7 +1449,8 @@ class Chord3DGraph {
     const material = new THREE.MeshPhongMaterial({
       map: this.planetTextures[planetType],
       color: planetColor,
-      shininess: 70
+      shininess: 70,
+      emissive: new THREE.Color(planetColor).multiplyScalar(0.2)  // Add some glow based on the planet color
     });
     
     const planet = new THREE.Mesh(geometry, material);
@@ -1354,11 +1464,11 @@ class Chord3DGraph {
     // Add glowing atmosphere for all planets
     const atmosphereGeometry = new THREE.SphereGeometry(planetRadius + 0.8, 32, 32);
     const atmosphereMaterial = new THREE.MeshPhongMaterial({
-      color: color,
+      color: planetColor,
       transparent: true,
       opacity: 0.3,
       side: THREE.BackSide,
-      emissive: color,
+      emissive: planetColor,
       emissiveIntensity: 0.4
     });
     
@@ -1369,11 +1479,17 @@ class Chord3DGraph {
   }
   
   getPlanetType(chordType) {
-    if (chordType.includes('Maj7')) return 'ice';
+    // Match each chord type to the most appropriate planet texture
+    if (chordType.includes('Maj7') || chordType.includes('maj7') || chordType.includes('M7')) return 'ice';
+    if (chordType === '7' && this.nodes.length <= 1) return 'mars'; // Sun (G7)
     if (chordType.includes('7')) return 'mars';
-    if (chordType.includes('-') || chordType.includes('min')) return 'moon';
-    if (chordType.includes('o') || chordType.includes('dim') || chordType.includes('aug')) return 'gas';
-    if (chordType.includes('sus')) return 'lava';
+    if (chordType.includes('-') || chordType.includes('min') || chordType.includes('m7')) return 'moon';
+    if (chordType.includes('o') || chordType.includes('dim')) return 'gas';
+    if (chordType.includes('aug') || chordType.includes('+')) return 'lava';
+    if (chordType.includes('sus')) return 'ice';
+    if (chordType.includes('9') || chordType.includes('11') || chordType.includes('13')) return 'gas';
+    if (chordType.includes('6')) return 'moon';
+    if (chordType.includes('add')) return 'lava';
     return 'earth'; // Default for major chords
   }
   
@@ -1382,48 +1498,52 @@ class Chord3DGraph {
     // Create a hash from the chord type to ensure consistent colors
     const hash = this.hashString(chordType);
     
-    // Create a color palette with more distinct colors for different chord types
+    // Create a color palette with more diverse and realistic planet colors
     const colorPalette = {
-      // Basic chord types
-      '7': 0xFFA500,        // Orange (G7 - the sun)
-      'Maj7': 0x4169E1,     // Royal Blue
-      'maj7': 0x4169E1,     // Royal Blue (alternate spelling)
-      'M7': 0x4169E1,       // Royal Blue (alternate spelling)
-      'm7': 0x9370DB,       // Medium Purple
-      '-7': 0x9370DB,       // Medium Purple (alternate spelling)
-      'min7': 0x9370DB,     // Medium Purple (alternate spelling)
-      'dim7': 0xFF1493,     // Deep Pink
-      'dim': 0xFF69B4,      // Hot Pink
-      'o7': 0xFF1493,       // Deep Pink (alternate spelling)
+      // Basic chord types - using realistic planet colors from our solar system and beyond
+      '7': 0xFFA500,        // Orange-yellow (G7 - the sun)
+      'Maj7': 0x4B0082,     // Deep indigo (Neptune-like)
+      'maj7': 0x4B0082,     // Deep indigo (alternate spelling)
+      'M7': 0x4B0082,       // Deep indigo (alternate spelling)
+      'm7': 0x8B4513,       // Saddle brown (Mars-like)
+      '-7': 0x8B4513,       // Saddle brown (alternate spelling)
+      'min7': 0x8B4513,     // Saddle brown (alternate spelling)
+      'dim7': 0x800080,     // Purple (exotic planet)
+      'dim': 0xC71585,      // Medium violet red (exotic planet)
+      'o7': 0x800080,       // Purple (alternate spelling)
       'ø7': 0xDA70D6,       // Orchid (half-diminished)
       'm7b5': 0xDA70D6,     // Orchid (half-diminished, alternate spelling)
-      'aug': 0x32CD32,      // Lime Green
-      '+': 0x32CD32,        // Lime Green (alternate spelling)
-      'sus4': 0x20B2AA,     // Light Sea Green
-      'sus2': 0x66CDAA,     // Medium Aquamarine
+      'aug': 0x006400,      // Dark green (exotic planet)
+      '+': 0x006400,        // Dark green (alternate spelling)
+      'sus4': 0xB87333,     // Copper (Mercury-like)
+      'sus2': 0xCD853F,     // Peru (Venus-like)
       
-      // Extended chords
-      '9': 0x1E90FF,        // Dodger Blue
-      '11': 0x00CED1,       // Dark Turquoise
-      '13': 0x00FA9A,       // Medium Spring Green
-      'm9': 0x9932CC,       // Dark Orchid
-      'Maj9': 0x0000CD,     // Medium Blue
+      // Extended chords - gas giants and ice planets
+      '9': 0xF4A460,        // Sandy brown (Jupiter-like)
+      '11': 0xD2B48C,       // Tan (Saturn-like)
+      '13': 0xE6E6FA,       // Lavender (Uranus-like)
+      'm9': 0x483D8B,       // Dark slate blue (exotic planet)
+      'Maj9': 0x00008B,     // Dark blue (exotic planet)
       
-      // Added tone chords
-      '6': 0x00BFFF,        // Deep Sky Blue
-      'm6': 0x8A2BE2,       // Blue Violet
-      'add9': 0x6495ED,     // Cornflower Blue
-      'add11': 0x7B68EE,    // Medium Slate Blue
+      // Added tone chords - exotic planets
+      '6': 0x2E8B57,        // Sea green (exotic planet)
+      'm6': 0x9400D3,       // Dark violet (exotic planet)
+      'add9': 0x8FBC8F,     // Dark sea green (exotic planet)
+      'add11': 0x9932CC,    // Dark orchid (exotic planet)
       
-      // Altered chords
-      '7b9': 0xDC143C,      // Crimson
-      '7#9': 0xB22222,      // Fire Brick
-      '7#11': 0xCD5C5C,     // Indian Red
-      '7b13': 0x8B0000,     // Dark Red
+      // Altered chords - hot planets and lava worlds
+      '7b9': 0x8B0000,      // Dark red (lava planet)
+      '7#9': 0xB22222,      // Fire brick (lava planet)
+      '7#11': 0xFF4500,     // Orange red (hot planet)
+      '7b13': 0xA52A2A,     // Brown (hot planet)
       
-      // Other chord types
-      '5': 0x708090,        // Slate Gray (power chord)
-      '': 0xF5F5F5          // White Smoke (default for unrecognized types)
+      // Other interesting planets
+      '5': 0x696969,        // Dim gray (asteroid-like)
+      'sus': 0xDEB887,      // Burlywood (desert planet)
+      'add': 0x556B2F,      // Dark olive green (forest planet)
+      'm': 0xA0522D,        // Sienna (rocky planet)
+      'maj': 0x6495ED,      // Cornflower blue (ocean planet)
+      '': 0x708090         // Slate gray (default for unrecognized types)
     };
     
     // Try to find an exact match for the chord type

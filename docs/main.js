@@ -938,6 +938,10 @@ function showError(message) {
 function showCompletionInGeneration(message) {
   console.log('Showing completion message in current generation:', message);
   
+  // Remove any existing completion messages
+  const existingCompletions = document.querySelectorAll('.generation-completion');
+  existingCompletions.forEach(el => el.remove());
+  
   // Create a completion message element
   const completionElement = document.createElement('div');
   completionElement.className = 'generation-completion';
@@ -947,8 +951,15 @@ function showCompletionInGeneration(message) {
   messageText.textContent = message;
   completionElement.appendChild(messageText);
   
-  // Add the completion element to the options container
-  optionsContainer.appendChild(completionElement);
+  // Add the completion element to the body for absolute positioning
+  document.body.appendChild(completionElement);
+  
+  // Position in the center-bottom of the screen
+  completionElement.style.position = 'fixed';
+  completionElement.style.top = '60%';
+  completionElement.style.left = '50%';
+  completionElement.style.transform = 'translateX(-50%)';
+  completionElement.style.zIndex = '9999';
   
   // Make sure the error div is hidden
   if (errorDiv) {

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Family Tree Theory</title>
   
+  <!-- Preload styles to prevent flash -->
+  <style id="preload-styles">
+    #chord3dContainer, .right-column, canvas, #chordGraph {
+      background-color: transparent !important;
+    }
+  </style>
+  
   <!-- Space theme fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,6 +64,8 @@
       grid-template-columns: 500px 1fr;
       grid-gap: 30px;
       height: calc(100vh - 150px);
+      position: relative;
+      margin-left: 0;
     }
     
     /* Left column */
@@ -65,17 +74,31 @@
       flex-direction: column;
       gap: 20px;
       width: 100%;
+      position: relative;
+      z-index: 1;
     }
     
     /* Right column - 3D graph */
     .right-column {
-      background-color: rgba(16, 23, 41, 0.8);
-      border: 1px solid rgba(99, 155, 255, 0.3);
+      background-color: transparent;
+      border: none;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      position: relative;
-      overflow: hidden;
+      box-shadow: none;
+      position: fixed;
+      overflow: visible;
       min-height: 600px;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      transform: translateX(300px);
+    }
+    
+    /* Make the 3D canvas receive pointer events */
+    .right-column canvas {
+      pointer-events: auto;
     }
     
     /* Module styling */
@@ -299,6 +322,31 @@
     .chord-option.seen-before {
       position: relative;
     }
+
+    /* Completion message styling */
+    .generation-completion {
+      position: absolute;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 0;
+      left: 50%;
+      top: 350px;
+      transform: translateX(-50%);
+      text-align: center;
+      border: 2px solid #4f71be;
+      box-shadow: 0 0 20px rgba(79, 113, 190, 0.5);
+      max-width: 80%;
+    }
+
+    .generation-completion p {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 24px;
+      color: #fff;
+      margin: 0;
+      text-shadow: 0 0 10px rgba(79, 113, 190, 0.8);
+    }
     
     .chord-option.seen-before::after {
       content: attr(data-tooltip);
@@ -392,6 +440,12 @@
       left: 0;
       width: 100%;
       height: 100%;
+      background-color: transparent !important;
+    }
+    
+    /* Ensure canvas is transparent from the start */
+    canvas {
+      background-color: transparent !important;
     }
     
     /* Tooltip styling */
@@ -468,7 +522,7 @@
       min-height: 200px;
       position: fixed;
       z-index: 9999;
-      top: 50%;
+      top: 70%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 80%;
@@ -561,7 +615,7 @@
               <h4>Discovery Log:</h4>
               <div id="logEntries" class="log-entries">
                 <div class="log-entry">
-                  <span class="log-gen">Gen 1:</span> 
+                  <span class="log-gen">Gen I:</span> 
                   <span class="log-chord">G7</span> 
                   <span class="log-desc">(The Sun)</span>
                 </div>
@@ -571,7 +625,7 @@
           <div id="generationContainer" class="generation-container">
             <div class="generation-header">
               <button id="prevGenButton" class="gen-nav-button">&larr;</button>
-              <h4 id="generationTitle">Generation 1</h4>
+              <h4 id="generationTitle">Generation I</h4>
               <button id="nextGenButton" class="gen-nav-button">&rarr;</button>
             </div>
             <div id="optionsContainer" class="options-container"></div>
@@ -587,9 +641,9 @@
       </div>
       
       <!-- Right Column - 3D Graph -->
-      <div class="right-column">
-        <div id="chordGraph" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
-          <div id="chord3dContainer"></div>
+      <div class="right-column" style="background-color: transparent !important;" id="graphContainer">
+        <div id="chordGraph" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: transparent !important;">
+          <div id="chord3dContainer" style="background-color: transparent !important;"></div>
         </div>
       </div>
     </div>
