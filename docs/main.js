@@ -430,8 +430,11 @@ function selectChord(genIndex, chordIndex) {
     childChords = generations[genIndex + 1].filter(c => c.parentIndex === chordIndex);
   }
   
-  // Add to discovery log
-  addToDiscoveryLog(chord, genIndex + 1, parentChord, childChords); // Add 1 to match UI generation numbers
+  // Add to discovery log - but skip if it's the first G7 chord (first chord in first generation)
+  // The first G7 chord is already in the log by default
+  if (!(genIndex === 0 && chordIndex === 0)) {
+    addToDiscoveryLog(chord, genIndex + 1, parentChord, childChords); // Add 1 to match UI generation numbers
+  }
   
   // Play the chord
   playTetrachord(chord.notes);
