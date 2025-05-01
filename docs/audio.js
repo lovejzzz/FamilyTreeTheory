@@ -3,6 +3,9 @@
 // Create audio context
 let audioContext;
 
+// Flag to track if audio has been initialized
+let audioInitialized = false;
+
 // Map of active oscillators to avoid memory leaks
 let activeOscillators = [];
 
@@ -109,17 +112,29 @@ export async function playTetrachord(notes) {
     return;
   }
   
+  console.log('Playing tetrachord with notes:', notes);
+  
   // Track the time of this play request
   lastPlayTime = Date.now();
   
-  // Initialize audio context if needed (must be done in response to a user gesture)
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  
-  // Resume audio context if it's suspended
-  if (audioContext.state === 'suspended') {
-    await audioContext.resume();
+  try {
+    // Initialize audio context if needed (must be done in response to a user gesture)
+    if (!audioContext) {
+      console.log('Creating new AudioContext');
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioInitialized = true;
+    }
+    
+    // Resume audio context if it's suspended
+    if (audioContext.state === 'suspended') {
+      console.log('Resuming suspended AudioContext');
+      await audioContext.resume();
+    }
+    
+    console.log('AudioContext state:', audioContext.state);
+  } catch (error) {
+    console.error('Error initializing audio context:', error);
+    return;
   }
   
   // Stop any currently playing notes to avoid overlapping sounds

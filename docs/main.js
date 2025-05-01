@@ -386,12 +386,20 @@ function displayGeneration(genIndex, completionMessage = null) {
     // Add click handler to select this chord (if not already in a later generation)
     if (!chord.isCycle && genIndex === generations.length - 1) {
       optionElement.addEventListener('click', () => {
+        console.log('Selecting chord:', chord.info.symbol);
+        // Play the chord sound first for immediate feedback
+        playTetrachord(chord.notes);
+        // Then select the chord for further processing
         selectChord(genIndex, index);
       });
     } else {
       // For chords that can't be selected (previous generations or cycles),
-      // add a click handler to focus on the chord in the 3D graph
+      // add a click handler to focus on the chord in the 3D graph and play sound
       optionElement.addEventListener('click', () => {
+        console.log('Focusing on chord:', chord.info.symbol);
+        // Play the chord sound for all chord cards, even in previous generations
+        playTetrachord(chord.notes);
+        
         // Focus on this chord in the 3D graph
         const chordSymbol = chord.info.symbol;
         if (chordSymbol && chordSymbol !== '?' && chordGraph) {
@@ -447,8 +455,9 @@ function selectChord(genIndex, chordIndex) {
   // No longer adding to discovery log when clicking chord cards
   // This prevents cluttering the log with repeated chord selections
   
-  // Play the chord
-  playTetrachord(chord.notes);
+  // Note: We're no longer playing the chord here
+  // because we already play it in the click handler
+  // This prevents the sound from being played twice
   
   // Refresh the display
   displayGeneration(genIndex);
@@ -843,10 +852,16 @@ function addToDiscoveryLog(chord, generation, parentChord = null, childChords = 
   });
   
   // Always scroll to show the newest content
-  // Use setTimeout to ensure this happens after the DOM is updated
+  // Use setTimeout with a slightly longer delay to ensure this happens after the DOM is fully updated
   setTimeout(() => {
+    const logContainer = document.querySelector('.discovery-log');
+    if (logContainer) {
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    // Also try scrolling the direct entries container
     logEntries.scrollTop = logEntries.scrollHeight;
-  }, 0);
+    console.log('Auto-scrolling discovery log to show newest content');
+  }, 50);
 }
 
 // Display chord information in the UI (legacy function, now just logs to discovery log)
