@@ -106,6 +106,9 @@ ws.addEventListener('open', () => {
   console.log('WebSocket connection established');
   gameActive = true;
   
+  // Initialize the next generation button with the undiscovered class
+  nextGenButton.classList.add('undiscovered');
+  
   // Initialize the first generation with G7 chord
   initializeGenerations();
 });
@@ -210,8 +213,19 @@ function navigateToGeneration(genIndex) {
 
 // Update the navigation buttons based on current generation
 function updateNavigationButtons() {
+  // Previous generation button - disabled if at first generation
   prevGenButton.disabled = currentGeneration === 0;
-  nextGenButton.disabled = currentGeneration >= generations.length - 1;
+  
+  // Next generation button - handle differently based on discovery state
+  if (currentGeneration >= generations.length - 1) {
+    // No next generation available yet
+    nextGenButton.disabled = true;
+    nextGenButton.classList.add('undiscovered');
+  } else {
+    // Next generation is available
+    nextGenButton.disabled = false;
+    nextGenButton.classList.remove('undiscovered');
+  }
 }
 
 // Display a specific generation of chords
@@ -828,8 +842,11 @@ function addToDiscoveryLog(chord, generation, parentChord = null, childChords = 
     });
   });
   
-  // Scroll to the bottom of the log
-  logEntries.scrollTop = logEntries.scrollHeight;
+  // Always scroll to show the newest content
+  // Use setTimeout to ensure this happens after the DOM is updated
+  setTimeout(() => {
+    logEntries.scrollTop = logEntries.scrollHeight;
+  }, 0);
 }
 
 // Display chord information in the UI (legacy function, now just logs to discovery log)
