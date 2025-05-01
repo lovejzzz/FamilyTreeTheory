@@ -27,6 +27,8 @@ class Chord3DGraph {
     this.renderer = null;
     this.nodeObjects = [];
     this.linkObjects = [];
+    this.arrowObjects = []; // Store animated directional arrows
+    this.connectionCurves = new Map(); // Store curves for connections to reuse for arrows
     this.raycaster = null;
     this.mouse = null;
     this.controls = null;
@@ -234,6 +236,11 @@ class Chord3DGraph {
       node.material.opacity = 0.7;
     });
     
+    // Remove all animated arrows when not hovering over any node
+    if (this.arrowObjects.length > 0 && intersects.length === 0) {
+      this.clearAnimatedArrows();
+    }
+    
     // Highlight intersected node and show tooltip
     if (intersects.length > 0) {
       const object = intersects[0].object;
@@ -250,9 +257,262 @@ class Chord3DGraph {
         if (node) {
           // Show tooltip with chord information
           this.showTooltip(node, mouseX, mouseY);
+          
+          // Create animated arrows for this node's connections
+          this.createAnimatedArrows(node);
         }
       }
     }
+  }
+  
+  // Create animated arrows for connections when hovering over a node
+  createAnimatedArrows(node) {
+    // Clear any existing arrows first
+    this.clearAnimatedArrows();
+    
+    if (!node) return;
+    
+    // Track bidirectional relationships to handle them specially
+    const bidirectionalPairs = new Set();
+    
+    // First, identify bidirectional relationships (loops)
+    this.links.forEach(link1 => {
+      if (link1.source === node.id) {
+        // Check if there's a reverse link (bidirectional relationship)
+        const hasReverseLink = this.links.some(link2 => 
+          link2.source === link1.target && link2.target === link1.source
+        );
+        
+        if (hasReverseLink) {
+          // This is a bidirectional relationship
+          bidirectionalPairs.add(link1.target);
+        }
+      } else if (link1.target === node.id) {
+        // Check for reverse link in the other direction
+        const hasReverseLink = this.links.some(link2 => 
+          link2.source === node.id && link2.target === link1.source
+        );
+        
+        if (hasReverseLink) {
+          bidirectionalPairs.add(link1.source);
+        }
+      }
+    });
+    
+    console.log('Bidirectional pairs for node', node.id, ':', Array.from(bidirectionalPairs));
+    
+    // Find all parent connections (incoming)
+    this.links.forEach(link => {
+      if (link.target === node.id) {
+        // This is a parent -> node connection
+        const sourceNode = this.nodes.find(n => n.id === link.source);
+        if (sourceNode) {
+          // Check if this is part of a bidirectional relationship
+          const isBidirectional = bidirectionalPairs.has(sourceNode.id);
+          
+          // For parent connections, arrows point FROM parent TO current node
+          this.createDirectionalArrows(sourceNode, node, 'parent', isBidirectional);
+        }
+      }
+    });
+    
+    // Find all child connections (outgoing)
+    this.links.forEach(link => {
+      if (link.source === node.id) {
+        // This is a node -> child connection
+        const targetNode = this.nodes.find(n => n.id === link.target);
+        if (targetNode) {
+          // Check if this is part of a bidirectional relationship
+          const isBidirectional = bidirectionalPairs.has(targetNode.id);
+          
+          // For child connections, arrows point FROM current node TO child
+          this.createDirectionalArrows(node, targetNode, 'child', isBidirectional);
+        }
+      }
+    });
+  }
+  
+  // Create directional arrows along a connection between two nodes
+  createDirectionalArrows(sourceNode, targetNode, connectionType, isBidirectional = false) {
+    // Find the positions of the source and target nodes
+    const sourcePos = new THREE.Vector3(sourceNode.x, sourceNode.y, sourceNode.z);
+    const targetPos = new THREE.Vector3(targetNode.x, targetNode.y, targetNode.z);
+    
+    // Create keys for the connection to look up in the connectionCurves map
+    const connectionKey = `${sourceNode.id}-${targetNode.id}`;
+    const reverseKey = `${targetNode.id}-${sourceNode.id}`;
+    
+    // Try to find an existing curve for this connection
+    let curve;
+    if (this.connectionCurves.has(connectionKey)) {
+      // Use the existing curve for this connection
+      curve = this.connectionCurves.get(connectionKey);
+    } else if (this.connectionCurves.has(reverseKey)) {
+      // Use the existing curve for the reverse connection
+      curve = this.connectionCurves.get(reverseKey);
+    } else {
+      // If no existing curve is found, we'll create a temporary one
+      // This is a fallback and shouldn't happen often since we store curves during update()
+      console.log('No existing curve found for connection between nodes', sourceNode.id, 'and', targetNode.id);
+      
+      // Create a simple curve between the two points
+      const curvePoints = [];
+      const segments = 16;
+      
+      // Calculate if this is a connection to/from the sun (G7)
+      const isSunConnection = (sourceNode.x === 0 && sourceNode.y === 0 && sourceNode.z === 0) || 
+                            (targetNode.x === 0 && targetNode.y === 0 && targetNode.z === 0);
+      
+      if (isSunConnection) {
+        // More direct paths for sun connections, slight curve
+        const midX = (sourceNode.x + targetNode.x) / 2;
+        const midY = (sourceNode.y + targetNode.y) / 2;
+        const midZ = (sourceNode.z + targetNode.z) / 2;
+        
+        // Add a small offset for the control point
+        const offset = 15;
+        const controlPoint = new THREE.Vector3(
+          midX + (Math.random() - 0.5) * offset,
+          midY + (Math.random() - 0.5) * offset,
+          midZ + (Math.random() - 0.5) * offset
+        );
+        
+        // Create a quadratic curve
+        const quadCurve = new THREE.QuadraticBezierCurve3(
+          sourcePos,
+          controlPoint,
+          targetPos
+        );
+        
+        // Sample points along the curve
+        for (let i = 0; i <= segments; i++) {
+          const t = i / segments;
+          curvePoints.push(quadCurve.getPoint(t));
+        }
+      } else {
+        // More curved paths for planet-to-planet connections
+        const midX = (sourceNode.x + targetNode.x) / 2;
+        const midY = (sourceNode.y + targetNode.y) / 2;
+        const midZ = (sourceNode.z + targetNode.z) / 2;
+        
+        // Create a significant offset for more dramatic curves
+        const distance = Math.sqrt(
+          Math.pow(targetNode.x - sourceNode.x, 2) + 
+          Math.pow(targetNode.y - sourceNode.y, 2) + 
+          Math.pow(targetNode.z - sourceNode.z, 2)
+        );
+        
+        const offset = distance * 0.5;
+        const controlPoint = new THREE.Vector3(
+          midX + (Math.random() - 0.5) * offset,
+          midY + Math.abs(Math.random()) * offset, // Always curve upward a bit
+          midZ + (Math.random() - 0.5) * offset
+        );
+        
+        // Create a quadratic curve
+        const quadCurve = new THREE.QuadraticBezierCurve3(
+          sourcePos,
+          controlPoint,
+          targetPos
+        );
+        
+        // Sample points along the curve
+        for (let i = 0; i <= segments; i++) {
+          const t = i / segments;
+          curvePoints.push(quadCurve.getPoint(t));
+        }
+      }
+      
+      curve = new THREE.CatmullRomCurve3(curvePoints);
+      
+      // Store this curve for future use
+      this.connectionCurves.set(connectionKey, curve);
+    }
+    
+    // Create arrows along the curve
+    // For bidirectional relationships, use fewer arrows to avoid visual clutter
+    const arrowCount = isBidirectional ? 6 : (connectionType === 'parent' ? 10 : 8);
+    const arrowSize = connectionType === 'parent' ? 5 : 4; // Larger arrows for parent connections
+    
+    // Get colors for the arrows based on source and target planets
+    const sourceColor = this.getChordColor(sourceNode.type);
+    const targetColor = this.getChordColor(targetNode.type);
+    
+    // Make the arrows more visible with brighter colors
+    // Use distinct colors for parent vs child relationships
+    const parentColor = new THREE.Color(0xFF5500); // Bright orange for parent arrows
+    const childColor = new THREE.Color(0x00AAFF); // Bright blue for child arrows
+    const bidirectionalColor = new THREE.Color(0xFFAA00); // Bright yellow-orange for bidirectional arrows
+    
+    // Choose the appropriate color based on relationship type and whether it's bidirectional
+    let arrowColor;
+    if (isBidirectional) {
+      arrowColor = bidirectionalColor;
+    } else {
+      arrowColor = connectionType === 'parent' ? parentColor : childColor;
+    }
+    
+    for (let i = 0; i < arrowCount; i++) {
+      // Position arrows at different points along the curve
+      const t = i / arrowCount;
+      
+      // Create arrow cone
+      const coneGeometry = new THREE.ConeGeometry(arrowSize * 0.5, arrowSize, 8);
+      const coneMaterial = new THREE.MeshBasicMaterial({ 
+        color: arrowColor,
+        transparent: true,
+        opacity: 1.0 // Full opacity for better visibility
+      });
+      
+      const arrow = new THREE.Mesh(coneGeometry, coneMaterial);
+      
+      // Add animation data to the arrow
+      arrow.userData = {
+        curve: curve,
+        t: t,
+        speed: 0.005 + Math.random() * 0.002, // Speed of movement along the curve
+        // For parent arrows, we want them flowing FROM parent TO child (positive direction)
+        // For child arrows, we also want them flowing FROM current node TO child (positive direction)
+        // This ensures all arrows show the correct parent-to-child flow
+        direction: 1, // Always move in the direction from source to target
+        type: connectionType,
+        isBidirectional: isBidirectional
+      };
+      
+      // Initial positioning
+      const point = curve.getPoint(t);
+      arrow.position.copy(point);
+      
+      // Orient the arrow along the curve's direction
+      const tangent = curve.getTangent(t).normalize();
+      const upVector = new THREE.Vector3(0, 1, 0);
+      const quaternion = new THREE.Quaternion();
+      quaternion.setFromUnitVectors(upVector, tangent);
+      
+      // No need to flip the arrow rotation anymore
+      // We want all arrows to point in the direction of flow (source to target)
+      // This means parent arrows point FROM parent TO child
+      // And child arrows point FROM current node TO child
+      // Both showing the correct parent-to-child relationship direction
+      
+      arrow.setRotationFromQuaternion(quaternion);
+      
+      this.scene.add(arrow);
+      this.arrowObjects.push(arrow);
+    }
+  }
+  
+  // Clear all animated arrows
+  clearAnimatedArrows() {
+    // Remove all arrows from the scene
+    this.arrowObjects.forEach(arrow => {
+      this.scene.remove(arrow);
+      if (arrow.geometry) arrow.geometry.dispose();
+      if (arrow.material) arrow.material.dispose();
+    });
+    
+    // Clear the array
+    this.arrowObjects = [];
   }
   
   // Show tooltip with chord information
@@ -533,6 +793,39 @@ class Chord3DGraph {
         // Get new position on curve
         const newPos = obj.userData.curve.getPoint(obj.userData.t);
         obj.position.copy(newPos);
+      }
+    });
+    
+    // Animate directional arrows along connections
+    this.arrowObjects.forEach(arrow => {
+      if (arrow.userData && arrow.userData.curve) {
+        // Update arrow position along curve
+        arrow.userData.t += arrow.userData.speed * arrow.userData.direction;
+        
+        // Loop arrows around the curve
+        if (arrow.userData.t > 1) arrow.userData.t = 0;
+        if (arrow.userData.t < 0) arrow.userData.t = 1;
+        
+        // Get new position on curve
+        const newPos = arrow.userData.curve.getPoint(arrow.userData.t);
+        arrow.position.copy(newPos);
+        
+        // Update arrow orientation to follow the curve
+        const tangent = arrow.userData.curve.getTangent(arrow.userData.t).normalize();
+        const upVector = new THREE.Vector3(0, 1, 0);
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromUnitVectors(upVector, tangent);
+        
+        // No need to flip the arrows anymore
+        // All arrows should point in the direction of flow (source to target)
+        // For bidirectional relationships, use a special animation
+        if (arrow.userData.isBidirectional) {
+          // For bidirectional arrows, make them pulse to indicate two-way relationship
+          const pulseScale = 1.0 + Math.sin(Date.now() * 0.005) * 0.2;
+          arrow.scale.set(pulseScale, pulseScale, pulseScale);
+        }
+        
+        arrow.setRotationFromQuaternion(quaternion);
       }
     });
     
@@ -833,6 +1126,10 @@ class Chord3DGraph {
       }
       
       const curve = new THREE.CatmullRomCurve3(curvePoints);
+      
+      // Store the curve for reuse with arrows
+      const connectionKey = `${source.id}-${target.id}`;
+      this.connectionCurves.set(connectionKey, curve);
       
       // Add tube with gradient material - make it thicker and more visible
       const tubeGeometry = new THREE.TubeGeometry(curve, 64, 1.5, 8, false);
@@ -1578,17 +1875,38 @@ class Chord3DGraph {
   
   // Clear the graph
   clear() {
+    // Remove all nodes and links
     this.nodes = [];
     this.links = [];
     this.nodeMap.clear();
-    this.currentLevel = 0;
+    this.connectionCurves.clear(); // Clear stored connection curves
     
-    // Clear 3D objects
-    this.nodeObjects.forEach(obj => this.scene.remove(obj));
-    this.linkObjects.forEach(obj => this.scene.remove(obj));
+    // Remove all objects from the scene
+    this.nodeObjects.forEach(obj => {
+      this.scene.remove(obj);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    });
     
+    this.linkObjects.forEach(obj => {
+      this.scene.remove(obj);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    });
+    
+    this.arrowObjects.forEach(obj => {
+      this.scene.remove(obj);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    });
+    
+    // Clear arrays
     this.nodeObjects = [];
     this.linkObjects = [];
+    this.arrowObjects = [];
+    
+    // Reset level
+    this.currentLevel = 0;
   }
 }
 

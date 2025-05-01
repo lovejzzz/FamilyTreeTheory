@@ -403,6 +403,28 @@
       animation: pulse-glow 0.3s ease-in-out;
     }
     
+    /* Styling for clickable chord names in the log */
+    .log-chord {
+      color: #ffcc00;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    
+    .log-chord:hover {
+      background-color: rgba(255, 204, 0, 0.2);
+      text-shadow: 0 0 8px rgba(255, 204, 0, 0.8);
+    }
+    
+    .log-chord.playing {
+      background-color: rgba(255, 204, 0, 0.4);
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 204, 0, 1);
+      animation: pulse-glow 0.3s ease-in-out;
+    }
+    
     /* Make all chord cards have a pointer cursor to indicate they're clickable */
     .chord-option {
       cursor: pointer;

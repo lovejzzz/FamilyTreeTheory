@@ -430,11 +430,8 @@ function selectChord(genIndex, chordIndex) {
     childChords = generations[genIndex + 1].filter(c => c.parentIndex === chordIndex);
   }
   
-  // Add to discovery log - but skip if it's the first G7 chord (first chord in first generation)
-  // The first G7 chord is already in the log by default
-  if (!(genIndex === 0 && chordIndex === 0)) {
-    addToDiscoveryLog(chord, genIndex + 1, parentChord, childChords); // Add 1 to match UI generation numbers
-  }
+  // No longer adding to discovery log when clicking chord cards
+  // This prevents cluttering the log with repeated chord selections
   
   // Play the chord
   playTetrachord(chord.notes);
@@ -660,8 +657,7 @@ function createNextGeneration() {
     }
   });
   
-  // Play the first chord audio
-  playTetrachord(allChildChords[0].notes);
+  // No automatic chord playing when clicking 'Next Generation'
   
   // Navigate to the new generation
   navigateToGeneration(generations.length - 1);
@@ -789,7 +785,7 @@ function addToDiscoveryLog(chord, generation, parentChord = null, childChords = 
   // Add generation and chord info (using only chord symbol, not full name)
   entry.innerHTML = `
     <span class="log-gen">Gen ${romanNumeral}:</span> 
-    <span class="log-chord">${chord.info.symbol}</span> 
+    <span class="log-chord" data-notes="${chord.notes.join(',')}">${chord.info.symbol}</span> 
     
   `;
   
@@ -797,7 +793,7 @@ function addToDiscoveryLog(chord, generation, parentChord = null, childChords = 
   if (parentChord) {
     const parentInfo = document.createElement('div');
     parentInfo.className = 'log-parent';
-    parentInfo.innerHTML = `↑ Parent: <span class="log-chord">${parentChord.info.symbol}</span>`;
+    parentInfo.innerHTML = `↑ Parent: <span class="log-chord" data-notes="${parentChord.notes.join(',')}">${parentChord.info.symbol}</span>`;
     entry.appendChild(parentInfo);
   }
   
@@ -805,12 +801,32 @@ function addToDiscoveryLog(chord, generation, parentChord = null, childChords = 
   if (childChords && childChords.length > 0) {
     const childrenInfo = document.createElement('div');
     childrenInfo.className = 'log-children';
-    childrenInfo.innerHTML = `↓ Children: ${childChords.map(c => `<span class="log-chord">${c.info.symbol}</span>`).join(', ')}`;
+    childrenInfo.innerHTML = `↓ Children: ${childChords.map(c => `<span class="log-chord" data-notes="${c.notes.join(',')}">${c.info.symbol}</span>`).join(', ')}`;
     entry.appendChild(childrenInfo);
   }
   
   // Add the entry to the log
   logEntries.appendChild(entry);
+  
+  // Add click event listeners to all chord spans in this entry
+  const chordSpans = entry.querySelectorAll('.log-chord');
+  chordSpans.forEach(span => {
+    span.style.cursor = 'pointer'; // Show pointer cursor on hover
+    span.addEventListener('click', function() {
+      // Get the notes data attribute and convert to array of numbers
+      const notesStr = this.getAttribute('data-notes');
+      if (notesStr) {
+        const notes = notesStr.split(',').map(n => parseInt(n, 10));
+        // Play the chord
+        playTetrachord(notes);
+        // Add visual feedback
+        this.classList.add('playing');
+        setTimeout(() => {
+          this.classList.remove('playing');
+        }, 300);
+      }
+    });
+  });
   
   // Scroll to the bottom of the log
   logEntries.scrollTop = logEntries.scrollHeight;
