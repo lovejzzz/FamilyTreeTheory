@@ -933,7 +933,8 @@ class Chord3DGraph {
         x: x,
         y: y,
         z: z,
-        parentId: parentInfo ? parentInfo.id : null
+        parentId: parentInfo ? parentInfo.id : null,
+        symbol: chordSymbol // Add symbol for focus matching
       };
       
       this.nodes.push(node);
@@ -1007,11 +1008,42 @@ class Chord3DGraph {
     this.nodeObjects = [];
     this.linkObjects = [];
     
+    // Re-distribute node positions to prevent overlap
+    // Group nodes by level and place evenly on concentric spheres
+    const levelMap = new Map();
+    this.nodes.forEach(node => {
+      if (!levelMap.has(node.level)) levelMap.set(node.level, []);
+      levelMap.get(node.level).push(node);
+    });
+    const baseRadius = 30;
+    const levelSpacing = 100;
+    const golden = (1 + Math.sqrt(5)) / 2;
+    levelMap.forEach((nodesAtLevel, lvl) => {
+      const R = baseRadius + lvl * levelSpacing;
+      const N = nodesAtLevel.length;
+      for (let i = 0; i < N; i++) {
+        const phi = Math.acos(1 - 2 * (i + 0.5) / N);
+        const theta = 2 * Math.PI * golden * i;
+        nodesAtLevel[i].x = R * Math.cos(theta) * Math.sin(phi);
+        nodesAtLevel[i].y = R * Math.sin(theta) * Math.sin(phi);
+        nodesAtLevel[i].z = R * Math.cos(phi);
+      }
+    });
+
     // Create planet textures if not already created
     if (!this.planetTextures) {
       this.createPlanetTextures();
     }
     
+    // Compute link-based color intensity for planets
+    const linkCounts = new Map();
+    this.nodes.forEach(n => linkCounts.set(n.id, 0));
+    this.links.forEach(l => {
+      linkCounts.set(l.source, (linkCounts.get(l.source) || 0) + 1);
+      linkCounts.set(l.target, (linkCounts.get(l.target) || 0) + 1);
+    });
+    const maxCount = Math.max(0, ...linkCounts.values());
+
     // Create nodes (planets)
     this.nodes.forEach(node => {
       // Create planet based on chord type
@@ -1025,7 +1057,14 @@ class Chord3DGraph {
       
       this.scene.add(planet);
       this.nodeObjects.push(planet);
-      
+
+      // Darken planet by connection count
+      const factor = maxCount ? (linkCounts.get(node.id) / maxCount) : 0;
+      const baseColor = new THREE.Color(this.getChordColor(node.type));
+      planet.material.color.copy(
+        baseColor.lerp(new THREE.Color(0x000000), factor)
+      );
+
       // Add text label directly on the planet
       // We'll add the label to the planet object itself rather than as a separate sprite
       this.addLabelToPlanet(planet, node.type, node.x, node.y, node.z);
@@ -1389,8 +1428,9 @@ class Chord3DGraph {
       }
     }
     
-    if (targetIndex >= 0 && targetIndex < this.nodeObjects.length) {
-      targetNode = this.nodeObjects[targetIndex];
+    if (targetIndex >= 0) {
+      // Locate the planet mesh corresponding to the target node ID
+      targetNode = this.nodeObjects.find(obj => obj.userData && obj.userData.nodeId === targetIndex);
     }
     
     // If we found the node, focus the camera on it
@@ -1792,74 +1832,17 @@ class Chord3DGraph {
   
   // Get color based on chord type
   getChordColor(chordType) {
-    // Create a hash from the chord type to ensure consistent colors
+    // Generate a varied color by hashing chordType and using golden ratio distribution
     const hash = this.hashString(chordType);
-    
-    // Create a color palette with more diverse and realistic planet colors
-    const colorPalette = {
-      // Basic chord types - using realistic planet colors from our solar system and beyond
-      '7': 0xFFA500,        // Orange-yellow (G7 - the sun)
-      'Maj7': 0x4B0082,     // Deep indigo (Neptune-like)
-      'maj7': 0x4B0082,     // Deep indigo (alternate spelling)
-      'M7': 0x4B0082,       // Deep indigo (alternate spelling)
-      'm7': 0x8B4513,       // Saddle brown (Mars-like)
-      '-7': 0x8B4513,       // Saddle brown (alternate spelling)
-      'min7': 0x8B4513,     // Saddle brown (alternate spelling)
-      'dim7': 0x800080,     // Purple (exotic planet)
-      'dim': 0xC71585,      // Medium violet red (exotic planet)
-      'o7': 0x800080,       // Purple (alternate spelling)
-      'ø7': 0xDA70D6,       // Orchid (half-diminished)
-      'm7b5': 0xDA70D6,     // Orchid (half-diminished, alternate spelling)
-      'aug': 0x006400,      // Dark green (exotic planet)
-      '+': 0x006400,        // Dark green (alternate spelling)
-      'sus4': 0xB87333,     // Copper (Mercury-like)
-      'sus2': 0xCD853F,     // Peru (Venus-like)
-      
-      // Extended chords - gas giants and ice planets
-      '9': 0xF4A460,        // Sandy brown (Jupiter-like)
-      '11': 0xD2B48C,       // Tan (Saturn-like)
-      '13': 0xE6E6FA,       // Lavender (Uranus-like)
-      'm9': 0x483D8B,       // Dark slate blue (exotic planet)
-      'Maj9': 0x00008B,     // Dark blue (exotic planet)
-      
-      // Added tone chords - exotic planets
-      '6': 0x2E8B57,        // Sea green (exotic planet)
-      'm6': 0x9400D3,       // Dark violet (exotic planet)
-      'add9': 0x8FBC8F,     // Dark sea green (exotic planet)
-      'add11': 0x9932CC,    // Dark orchid (exotic planet)
-      
-      // Altered chords - hot planets and lava worlds
-      '7b9': 0x8B0000,      // Dark red (lava planet)
-      '7#9': 0xB22222,      // Fire brick (lava planet)
-      '7#11': 0xFF4500,     // Orange red (hot planet)
-      '7b13': 0xA52A2A,     // Brown (hot planet)
-      
-      // Other interesting planets
-      '5': 0x696969,        // Dim gray (asteroid-like)
-      'sus': 0xDEB887,      // Burlywood (desert planet)
-      'add': 0x556B2F,      // Dark olive green (forest planet)
-      'm': 0xA0522D,        // Sienna (rocky planet)
-      'maj': 0x6495ED,      // Cornflower blue (ocean planet)
-      '': 0x708090         // Slate gray (default for unrecognized types)
-    };
-    
-    // Try to find an exact match for the chord type
-    for (const key in colorPalette) {
-      if (chordType === key) {
-        return colorPalette[key];
-      }
-    }
-    
-    // If no exact match, try to find a partial match
-    for (const key in colorPalette) {
-      if (key !== '' && chordType.includes(key)) {
-        return colorPalette[key];
-      }
-    }
-    
-    // If still no match, generate a color based on the hash
-    // This ensures that the same chord type always gets the same color
-    return 0x1000000 + (hash % 0xEFFFFF); // Ensures we don't get too dark colors
+    const goldenRatioConj = 0.6180339887498949;
+    // Map hash to [0,1] hue
+    const hue = (hash * goldenRatioConj) % 1;
+    // Slightly vary saturation and lightness for diversity
+    const saturation = 0.6 + ((hash >> 8) % 40) / 100; // 0.6 - 1.0
+    const lightness = 0.4 + ((hash >> 16) % 30) / 100; // 0.4 - 0.7
+    const color = new THREE.Color();
+    color.setHSL(hue, saturation, lightness);
+    return color.getHex();
   }
 
   // Generate a simple hash from a string

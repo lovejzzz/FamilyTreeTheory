@@ -383,35 +383,34 @@ function displayGeneration(genIndex, completionMessage = null) {
     }
     optionElement.appendChild(nameElement);
     
-    // Add click handler to select this chord (if not already in a later generation)
-    if (!chord.isCycle && genIndex === generations.length - 1) {
-      optionElement.addEventListener('click', () => {
-        console.log('Selecting chord:', chord.info.symbol);
-        // Play the chord sound first for immediate feedback
-        playTetrachord(chord.notes);
-        // Then select the chord for further processing
-        selectChord(genIndex, index);
-      });
+    // Add click handler to allow navigation by focusing the 3D graph
+    if (genIndex === generations.length - 1) {
+      if (!chord.isCycle && !appearedInPreviousGen) {
+        // New chord in current generation: play, select and focus
+        optionElement.addEventListener('click', () => {
+          console.log('Selecting chord:', chord.info.symbol);
+          playTetrachord(chord.notes);
+          selectChord(genIndex, index);
+          chordGraph.focusOnChord(chord.info.symbol);
+        });
+      } else {
+        // Seen-before or cycle chord: only focus and play
+        optionElement.addEventListener('click', () => {
+          console.log('Focusing on chord (seen-before/cycle):', chord.info.symbol);
+          playTetrachord(chord.notes);
+          if (chord.info.symbol && chord.info.symbol !== '?' && chordGraph) {
+            optionElement.classList.add('focusing');
+            setTimeout(() => optionElement.classList.remove('focusing'), 300);
+            chordGraph.focusOnChord(chord.info.symbol);
+          }
+        });
+      }
     } else {
-      // For chords that can't be selected (previous generations or cycles),
-      // add a click handler to focus on the chord in the 3D graph and play sound
+      // Previous generations: focus and play
       optionElement.addEventListener('click', () => {
-        console.log('Focusing on chord:', chord.info.symbol);
-        // Play the chord sound for all chord cards, even in previous generations
+        console.log('Focusing on chord (previous-gen):', chord.info.symbol);
         playTetrachord(chord.notes);
-        
-        // Focus on this chord in the 3D graph
-        const chordSymbol = chord.info.symbol;
-        if (chordSymbol && chordSymbol !== '?' && chordGraph) {
-          // Add a visual indicator that the card was clicked
-          optionElement.classList.add('focusing');
-          setTimeout(() => {
-            optionElement.classList.remove('focusing');
-          }, 300);
-          
-          // Focus the 3D graph on this chord
-          chordGraph.focusOnChord(chordSymbol);
-        }
+        chordGraph.focusOnChord(chord.info.symbol);
       });
     }
     
@@ -1030,4 +1029,3 @@ function showCompletion(message) {
 }
 
 // Reset functionality removed as requested
-
